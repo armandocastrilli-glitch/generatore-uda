@@ -5,18 +5,21 @@ export async function POST(req: Request) {
     const { titolo, classe, periodo, ore, materie } = await req.json();
     const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
 
-    // USIAMO LA VERSIONE v1 (STABILE) E IL MODELLO GEMINI-PRO
+    // URL AGGIORNATO: Usiamo gemini-1.5-flash (il modello gratuito attuale)
+    // E la versione v1 (non beta) per massima stabilità
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `Genera una Unità di Apprendimento (UDA) completa. 
-                     Titolo: ${titolo}, Classe: ${classe}, Materie: ${materie.join(", ")}. 
-                     Includi: Competenze, Obiettivi, Fasi e Valutazione.`
+              text: `Sei un esperto di didattica italiana. Genera una Unità di Apprendimento (UDA) per una scuola secondaria di primo grado (IC "F. Bursi").
+                     Titolo: ${titolo}
+                     Classe: ${classe}ª
+                     Materie: ${materie.join(", ")}
+                     Includi: Competenze chiave, Traguardi, Obiettivi, Fasi di lavoro e Griglia di valutazione.`
             }]
           }]
         })
@@ -25,19 +28,22 @@ export async function POST(req: Request) {
 
     const data = await response.json();
 
-    // Se Google restituisce un errore, lo leggiamo qui
+    // Gestione degli errori specifica
     if (data.error) {
-      throw new Error(data.error.message);
+      throw new Error(`${data.error.status}: ${data.error.message}`);
     }
 
-    // Estraiamo il testo correttamente per il modello Pro
+    if (!data.candidates || data.candidates.length === 0) {
+      throw new Error("Google non ha restituito alcun contenuto. Controlla la sicurezza del prompt.");
+    }
+
     const text = data.candidates[0].content.parts[0].text;
     return NextResponse.json({ uda: text });
 
   } catch (error: any) {
-    console.error("ERRORE DEFINITIVO:", error.message);
+    console.error("ERRORE FINALE:", error.message);
     return NextResponse.json({ 
-      error: "Errore di connessione a Google", 
+      error: "Problema con Google Gemini", 
       dettaglio: error.message 
     }, { status: 500 });
   }
