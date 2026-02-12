@@ -1,315 +1,199 @@
+
 "use client";
+import { useState } from "react";
 
-import React, { useState } from 'react';
-
-// --- 1. ARCHIVIO INTEGRALE TRAGUARDI IC BURSI ---
+// --- ARCHIVIO INTEGRALE TRAGUARDI IC BURSI ---
 const CURRICOLO_BURSI = {
   primaria: [
-    { competenza: "1. Alfabetica Funzionale", traguardi: [
-      { id: "TP1", testo: "Comunicare con chiarezza ed efficacia: esprimere oralmente idee, esperienze e domande in modo logico." },
-      { id: "TP2a", testo: "Decodificare e comprendere messaggi chiave (comunicazione orale e non verbale)." },
-      { id: "TP2b", testo: "Decodificare e comprendere messaggi chiave (comunicazione scritta)." },
-      { id: "TP3", testo: "Interagire con media diversi: utilizzare immagini, video e strumenti digitali per esprimersi." },
-      { id: "TP4", testo: "Leggere testi di vario genere della letteratura per l'infanzia e formulare giudizi personali." },
-      { id: "TP5", testo: "Riassumere il contenuto di testi scritti individuando i punti principali." },
-      { id: "TP6a", testo: "Produrre testi significativi (descrizioni, narrazioni, messaggi) rispettando la correttezza linguistica." },
-      { id: "TP6b", testo: "Produrre testi significativi rispettando la struttura di base e la coerenza." }
-    ]},
-    { competenza: "2. Multilinguistica", traguardi: [
-      { id: "TP7", testo: "Comprendere e utilizzare espressioni di uso quotidiano e frasi basilari." },
-      { id: "TP8", testo: "Presentare sé stessi e gli altri fornendo informazioni personali di base." },
-      { id: "TP9", testo: "Rispondere a domande semplici su dove si abita, gusti e possessi." },
-      { id: "TP10", testo: "Descrivere persone, oggetti, luoghi familiari e attività quotidiane." },
-      { id: "TP11", testo: "Scrivere brevi e semplici testi su argomenti familiari e situazioni quotidiane." }
-    ]},
-    { competenza: "3. Matematica, Scienze, Tecnologia, Geografia", traguardi: [
-      { id: "TP12", testo: "Classificare oggetti e fenomeni in base a criteri definiti." },
-      { id: "TP13", testo: "Produrre diverse soluzioni per un problema tecnico o matematico." },
-      { id: "TP14", testo: "Utilizzare strumenti di misura e rappresentazione spaziale." },
-      { id: "TP15", testo: "Riconoscere strutture e meccanismi elementari in macchine d'uso comune." },
-      { id: "TP16", testo: "Formulare ipotesi semplici basate sull'osservazione scientifica." },
-      { id: "TP17", testo: "Riconoscere le relazioni tra uomo e ambiente nelle scale geografiche." }
-    ]},
-    { competenza: "4. Digitale", traguardi: [
-      { id: "TP18", testo: "Utilizzare le tecnologie digitali con consapevolezza per scopi comunicativi." },
-      { id: "TP19", testo: "Cercare, raccogliere e conservare informazioni digitali." },
-      { id: "TP20", testo: "Creare semplici contenuti digitali (testi, disegni, presentazioni)." },
-      { id: "TP21", testo: "Riconoscere i rischi e i benefici dell'uso della rete." },
-      { id: "TP22", testo: "Risolvere problemi tecnologici elementari." },
-      { id: "TP23", testo: "Utilizzare il pensiero computazionale per risolvere piccoli quesiti." }
-    ]},
-    { competenza: "5. Personale, Sociale e Imparare a Imparare", traguardi: [
-      { id: "TP24", testo: "Gestire il proprio tempo e le proprie attività scolastiche." },
-      { id: "TP25", testo: "Riflettere sul proprio percorso di apprendimento (metacognizione)." },
-      { id: "TP26", testo: "Collaborare costruttivamente in gruppo rispettando le regole." },
-      { id: "TP27", testo: "Esprimere e gestire le proprie emozioni in contesti relazionali." },
-      { id: "TP28", testo: "Dimostrare autonomia nello svolgimento dei compiti assegnati." },
-      { id: "TP29", testo: "Adottare stili di vita sani e corretti." }
-    ]},
-    { competenza: "6. Cittadinanza (Ed. Civica)", traguardi: [
-      { id: "TP30", testo: "Riconoscere i diritti e i doveri fondamentali del cittadino." },
-      { id: "TP31", testo: "Conoscere e rispettare le regole della vita scolastica e sociale." },
-      { id: "TP32", testo: "Valorizzare le diversità e promuovere l'inclusione." },
-      { id: "TP33", testo: "Conoscere i simboli delle istituzioni (Stato, Regioni, Comuni)." },
-      { id: "TP34", testo: "Agire in modo responsabile per la tutela dell'ambiente." },
-      { id: "TP35", testo: "Esercitare la cittadinanza digitale in modo corretto e sicuro." },
-      { id: "TP36", testo: "Partecipare attivamente a progetti di solidarietà e volontariato." }
-    ]},
-    { competenza: "7. Imprenditoriale", traguardi: [
-      { id: "TP37", testo: "Mostrare curiosità e apertura verso nuove esperienze e attività." },
-      { id: "TP38", testo: "Assumersi le proprie responsabilità, dimostrare impegno e laboriosità." },
-      { id: "TP39", testo: "Affrontare gli insuccessi con resilienza e spirito critico." },
-      { id: "TP40", testo: "Riconoscere e valorizzare i propri punti di forza e di debolezza." },
-      { id: "TP41", testo: "Collaborare per trovare soluzioni innovative a problemi comuni." },
-      { id: "TP42", testo: "Proporre semplici idee e iniziative nel contesto scolastico." }
-    ]},
-    { competenza: "8. Consapevolezza ed Espressione Culturale", traguardi: [
-      { id: "TP43", testo: "Esplorare gli elementi delle diverse identità culturali e tradizioni." },
-      { id: "TP44", testo: "Collocare nello spazio e nel tempo elementi culturali e opere d'arte." },
-      { id: "TP45", testo: "Organizzare eventi personali e collettivi in sequenze temporali semplici." },
-      { id: "TP46", testo: "Esprimersi attraverso diversi linguaggi (musicale, artistico, corporeo)." },
-      { id: "TP47", testo: "Riconoscere il valore del patrimonio culturale del proprio territorio." },
-      { id: "TP48", testo: "Partecipare a eventi culturali e manifestazioni artistiche." }
-    ]}
+    {
+      competenza: "1. Alfabetica Funzionale",
+      traguardi: [
+        { id: "TP1", testo: "Comunicare con chiarezza ed efficacia: esprimere oralmente idee, esperienze e domande in modo logico." },
+        { id: "TP2a", testo: "Decodificare e comprendere messaggi chiave (comunicazione orale e non verbale)." },
+        { id: "TP2b", testo: "Decodificare e comprendere messaggi chiave (comunicazione scritta)." },
+        { id: "TP3", testo: "Interagire con media diversi: utilizzare immagini, video e strumenti digitali per esprimersi." },
+        { id: "TP4", testo: "Leggere testi di vario genere della letteratura per l'infanzia e formulare giudizi personali." },
+        { id: "TP5", testo: "Riassumere il contenuto di testi scritti individuando i punti principali." },
+        { id: "TP6a", testo: "Produrre testi significativi (descrizioni, narrazioni, messaggi) rispettando la correttezza linguistica." },
+        { id: "TP6b", testo: "Produrre testi significativi rispettando la struttura di base e la coerenza." }
+      ]
+    },
+    {
+      competenza: "2. Multilinguistica",
+      traguardi: [
+        { id: "TP7", testo: "Comprendere e utilizzare espressioni di uso quotidiano e frasi basilari." },
+        { id: "TP8", testo: "Presentare sé stessi e gli altri fornendo informazioni personali di base." },
+        { id: "TP9", testo: "Rispondere a domande semplici su dove si abita, gusti e possessi." },
+        { id: "TP10", testo: "Descrivere persone, oggetti, luoghi familiari e attività quotidiane." },
+        { id: "TP11", testo: "Scrivere brevi e semplici testi su argomenti familiari e situazioni quotidiane." }
+      ]
+    },
+    {
+      competenza: "3. Matematica, Scienze, Tecnologia, Geografia",
+      traguardi: [
+        { id: "TP12", testo: "Classificare oggetti e fenomeni in base a criteri definiti." },
+        { id: "TP13", testo: "Produrre diverse soluzioni per un problema tecnico o matematico." },
+        { id: "TP14", testo: "Utilizzare strumenti di misura e rappresentazione spaziale." },
+        { id: "TP15", testo: "Riconoscere strutture e meccanismi elementari in macchine d'uso comune." },
+        { id: "TP16", testo: "Formulare ipotesi semplici basate sull'osservazione scientifica." },
+        { id: "TP17", testo: "Riconoscere le relazioni tra uomo e ambiente nelle scale geografiche." }
+      ]
+    },
+    {
+      competenza: "4. Digitale",
+      traguardi: [
+        { id: "TP18", testo: "Utilizzare le tecnologie digitali con consapevolezza per scopi comunicativi." },
+        { id: "TP19", testo: "Cercare, raccogliere e conservare informazioni digitali." },
+        { id: "TP20", testo: "Creare semplici contenuti digitali (testi, disegni, presentazioni)." },
+        { id: "TP21", testo: "Riconoscere i rischi e i benefici dell'uso della rete." },
+        { id: "TP22", testo: "Risolvere problemi tecnologici elementari." },
+        { id: "TP23", testo: "Utilizzare il pensiero computazionale per risolvere piccoli quesiti." }
+      ]
+    },
+    {
+      competenza: "5. Personale, Sociale e Imparare a Imparare",
+      traguardi: [
+        { id: "TP24", testo: "Gestire il proprio tempo e le proprie attività scolastiche." },
+        { id: "TP25", testo: "Riflettere sul proprio percorso di apprendimento (metacognizione)." },
+        { id: "TP26", testo: "Collaborare costruttivamente in gruppo rispettando le regole." },
+        { id: "TP27", testo: "Esprimere e gestire le proprie emozioni in contesti relazionali." },
+        { id: "TP28", testo: "Dimostrare autonomia nello svolgimento dei compiti assegnati." },
+        { id: "TP29", testo: "Adottare stili di vita sani e corretti." }
+      ]
+    },
+    {
+      competenza: "6. Cittadinanza (Ed. Civica)",
+      traguardi: [
+        { id: "TP30", testo: "Riconoscere i diritti e i doveri fondamentali del cittadino." },
+        { id: "TP31", testo: "Conoscere e rispettare le regole della vita scolastica e sociale." },
+        { id: "TP32", testo: "Valorizzare le diversità e promuovere l'inclusione." },
+        { id: "TP33", testo: "Conoscere i simboli delle istituzioni (Stato, Regioni, Comuni)." },
+        { id: "TP34", testo: "Agire in modo responsabile per la tutela dell'ambiente." },
+        { id: "TP35", testo: "Esercitare la cittadinanza digitale in modo corretto e sicuro." },
+        { id: "TP36", testo: "Partecipare attivamente a progetti di solidarietà e volontariato." }
+      ]
+    },
+    {
+      competenza: "7. Imprenditoriale",
+      traguardi: [
+        { id: "TP37", testo: "Mostrare curiosità e apertura verso nuove esperienze e attività." },
+        { id: "TP38", testo: "Assumersi le proprie responsabilità, dimostrare impegno e laboriosità." },
+        { id: "TP39", testo: "Affrontare gli insuccessi con resilienza e spirito critico." },
+        { id: "TP40", testo: "Riconoscere e valorizzare i propri punti di forza e di debolezza." },
+        { id: "TP41", testo: "Collaborare per trovare soluzioni innovative a problemi comuni." },
+        { id: "TP42", testo: "Proporre semplici idee e iniziative nel contesto scolastico." }
+      ]
+    },
+    {
+      competenza: "8. Consapevolezza ed Espressione Culturale",
+      traguardi: [
+        { id: "TP43", testo: "Esplorare gli elementi delle diverse identità culturali e tradizioni." },
+        { id: "TP44", testo: "Collocare nello spazio e nel tempo elementi culturali e opere d'arte." },
+        { id: "TP45", testo: "Organizzare eventi personali e collettivi in sequenze temporali semplici." },
+        { id: "TP46", testo: "Esprimersi attraverso diversi linguaggi (musicale, artistico, corporeo)." },
+        { id: "TP47", testo: "Riconoscere il valore del patrimonio culturale del proprio territorio." },
+        { id: "TP48", testo: "Partecipare a eventi culturali e manifestazioni artistiche." }
+      ]
+    }
   ],
   secondaria: [
-    { competenza: "1. Alfabetica Funzionale", traguardi: [
-      { id: "TS1", testo: "lo studente comprende ed usa le informazioni ricavate da documenti di vario tipo" },
-      { id: "TS2a", testo: "Lo studente comunica in forma orale" },
-      { id: "TS2b", testo: "Interpretare il significato nel contesto: ricavare significati impliciti da messaggi scritti." },
-      { id: "TS3", testo: "Padroneggiare strategie di lettura analitica e selettiva per testi complessi." },
-      { id: "TS4", testo: "Elaborare informazioni provenienti da diverse fonti, inclusi materiali digitali." },
-      { id: "TS5", testo: "lo studente comunica in forma scritta" },
-      { id: "TS6", testo: "Pensare in modo flessibile: esaminare argomenti da più punti di vista." },
-      { id: "TS7", testo: "Padroneggiare gli elementi fondamentali della frase semplice e complessa." }
-    ]},
-    { competenza: "2. Multilinguistica", traguardi: [
-      { id: "TS8", testo: "lo studente comprende ed usa le informazioni ricavate da documenti di vario tipo" },
-      { id: "TS9", testo: "Lo studente comunica in forma orale" },
-      { id: "TS10", testo: "lo studente comunica in forma scritta" },
-      { id: "TS11", testo: "Utilizzare strategie di compensazione per comunicare con risorse limitate." },
-      { id: "TS12", testo: "Riconoscere le differenze culturali tra la propria lingua e quella straniera." },
-      { id: "TS13", testo: "Utilizzare strumenti digitali per l'apprendimento linguistico." }
-    ]},
-    { competenza: "3. Matematica e Scienze", traguardi: [
-      { id: "TS19", testo: "lo studente comprende ed usa le informazioni ricavate da documenti di vario tipo" },
-      { id: "TS20", testo: "Utilizza il proprio patrimonio di conoscenze per comprendere i problemi e proporre soluzioni" },
-      { id: "TS21", testo: "Utilizzare strumenti tecnologici per progettare e realizzare soluzioni." },
-      { id: "TS22", testo: "Spiegare fenomeni naturali utilizzando leggi e modelli scientifici." },
-      { id: "TS23", testo: "Rispettare le norme di sicurezza nell'uso di strumenti e laboratori." },
-      { id: "TS24", testo: "Analizzare i processi di trasformazione dell'energia e il loro impatto." },
-      { id: "TS25", testo: "Interpretare il paesaggio geografico come sistema antropico-naturale." }
-    ]},
-    { competenza: "4. Digitale", traguardi: [
-      { id: "TS26", testo: "Gestire in modo autonomo e critico le informazioni digitali." },
-      { id: "TS27", testo: "Utilizzare software di produttività per organizzare dati e contenuti." },
-      { id: "TS28", testo: "Creare e modificare contenuti digitali multimediali complessi." },
-      { id: "TS29", testo: "Riconoscere e prevenire rischi legati al cyberbullismo e alla privacy." },
-      { id: "TS30", testo: "Programmare semplici algoritmi per risolvere problemi specifici." },
-      { id: "TS31", testo: "Valutare l'affidabilità delle fonti di informazione online." },
-      { id: "TS32", testo: "Sperimentare diverse forme di comunicazione mediata dalle tecnologie." },
-      { id: "TS33", testo: "Configurare e personalizzare dispositivi digitali per le proprie esigenze." }
-    ]},
-    { competenza: "5. Imparare a imparare", traguardi: [
-      { id: "TS34", testo: "Uso delle conoscenze apprese per organizzare e realizzare un prodotto" },
-      { id: "TS35", testo: "Verifica il processo e i risultati raggiunti" },
-      { id: "TS36", testo: "Collaborare attivamente in team multidisciplinari." },
-      { id: "TS37", testo: "Dimostrare empatia e rispetto verso i compagni." },
-      { id: "TS38", testo: "Gestire lo stress e le sfide con atteggiamento propositivo." },
-      { id: "TS39", testo: "Essere consapevoli delle proprie inclinazioni per l'orientamento futuro." }
-    ]},
-    { competenza: "6. Cittadinanza", traguardi: [
-      { id: "TS40", testo: "Agire come cittadino responsabile nel rispetto della Costituzione." },
-      { id: "TS41", testo: "Conoscere le istituzioni europee e internazionali." },
-      { id: "TS42", testo: "Analizzare criticamente i fenomeni sociali e i problemi globali." },
-      { id: "TS43", testo: "Sviluppare progetti per la legalità e la lotta alle mafie." },
-      { id: "TS44", testo: "Rispettare i beni comuni e il patrimonio pubblico." },
-      { id: "TS45", testo: "Promuovere lo sviluppo sostenibile e l'economia circolare." },
-      { id: "TS46", testo: "Partecipare al dibattito democratico rispettando le opinioni altrui." },
-      { id: "TS47", testo: "Applicare i principi della sicurezza stradale e del primo soccorso." },
-      { id: "TS48", testo: "Riconoscere l'importanza del volontariato e dell'impegno civile." }
-    ]},
-    { competenza: "7. Imprenditorialità", traguardi: [
-      { id: "TS49", testo: "Uso delle conoscenze apprese per organizzare e realizzare un prodotto" },
-      { id: "TS50", testo: "Verifica il processo e i risultati raggiunti" },
-      { id: "TS51", testo: "Utilizzare conoscenze e nozioni di base in modo organico per ricercare e organizzare nuove informazioni" },
-      { id: "TS52", testo: "Riflettere sulle proprie esperienze per orientare le scelte future." },
-      { id: "TS53", testo: "Collaborare e cooperare per trasformare idee in azioni concrete." }
-    ]},
-    { competenza: "8. Espressione Culturale", traguardi: [
-      { id: "TS54", testo: "Riconoscere e analizzare i principali stili e correnti artistiche e musicali." },
-      { id: "TS55", testo: "Utilizzare diversi linguaggi espressivi per comunicare messaggi complessi." },
-      { id: "TS56", testo: "Collocare opere e fenomeni culturali nel loro contesto storico e sociale." },
-      { id: "TS57", testo: "Apprezzare la varietà delle espressioni culturali come patrimonio dell'umanità." },
-      { id: "TS58", testo: "Partecipare attivamente a laboratori di teatro, musica o arte." },
-      { id: "TS59", testo: "Analizzare criticamente messaggi pubblicitari e prodotti mediatici." }
-    ]}
+    {
+      competenza: "1. Alfabetica Funzionale",
+      traguardi: [
+        { id: "TS1", testo: "Comunicare in modo efficace e consapevole: produrre testi orali complessi e precisi." },
+        { id: "TS2a", testo: "Interpretare il significato nel contesto: analizzare messaggi orali e visivi cogliendo sfumature." },
+        { id: "TS2b", testo: "Interpretare il significato nel contesto: ricavare significati impliciti da messaggi scritti." },
+        { id: "TS3", testo: "Padroneggiare strategie di lettura analitica e selettiva per testi complessi." },
+        { id: "TS4", testo: "Elaborare informazioni provenienti da diverse fonti, inclusi materiali digitali." },
+        { id: "TS5", testo: "Produrre testi scritti complessi e appropriati al contesto e allo scopo." },
+        { id: "TS6", testo: "Pensare in modo flessibile: esaminare argomenti da più punti di vista." },
+        { id: "TS7", testo: "Padroneggiare gli elementi fondamentali della frase semplice e complessa." }
+      ]
+    },
+    {
+      competenza: "2. Multilinguistica",
+      traguardi: [
+        { id: "TS8", testo: "Comprendere i punti principali di messaggi in lingua straniera su temi noti." },
+        { id: "TS9", testo: "Interagire in lingua straniera in situazioni quotidiane e di studio." },
+        { id: "TS10", testo: "Produrre testi semplici e coerenti su argomenti di interesse personale." },
+        { id: "TS11", testo: "Utilizzare strategie di compensazione per comunicare con risorse limitate." },
+        { id: "TS12", testo: "Riconoscere le differenze culturali tra la propria lingua e quella straniera." },
+        { id: "TS13", testo: "Utilizzare strumenti digitali per l'apprendimento linguistico." }
+      ]
+    },
+    {
+      competenza: "3. Matematica, Scienze, Tecnologia, Geografia",
+      traguardi: [
+        { id: "TS19", testo: "Utilizzare linguaggi logico-matematici per modellizzare situazioni reali." },
+        { id: "TS20", testo: "Analizzare dati e informazioni per trarre conclusioni motivate." },
+        { id: "TS21", testo: "Utilizzare strumenti tecnologici per progettare e realizzare soluzioni." },
+        { id: "TS22", testo: "Spiegare fenomeni naturali utilizzando leggi e modelli scientifici." },
+        { id: "TS23", testo: "Rispettare le norme di sicurezza nell'uso di strumenti e laboratori." },
+        { id: "TS24", testo: "Analizzare i processi di trasformazione dell'energia e il loro impatto." },
+        { id: "TS25", testo: "Interpretare il paesaggio geografico come sistema antropico-naturale." }
+      ]
+    },
+    {
+      competenza: "4. Digitale",
+      traguardi: [
+        { id: "TS26", testo: "Gestire in modo autonomo e critico le informazioni digitali." },
+        { id: "TS27", testo: "Utilizzare software di produttività per organizzare dati e contenuti." },
+        { id: "TS28", testo: "Creare e modificare contenuti digitali multimediali complessi." },
+        { id: "TS29", testo: "Riconoscere e prevenire rischi legati al cyberbullismo e alla privacy." },
+        { id: "TS30", testo: "Programmare semplici algoritmi per risolvere problemi specifici." },
+        { id: "TS31", testo: "Valutare l'affidabilità delle fonti di informazione online." },
+        { id: "TS32", testo: "Sperimentare diverse forme di comunicazione mediata dalle tecnologie." },
+        { id: "TS33", testo: "Configurare e personalizzare dispositivi digitali per le proprie esigenze." }
+      ]
+    },
+    {
+      competenza: "5. Personale, Sociale e Imparare a Imparare",
+      traguardi: [
+        { id: "TS34", testo: "Pianificare il proprio lavoro scolastico e gestire le scadenze." },
+        { id: "TS35", testo: "Valutare criticamente le proprie prestazioni e i propri errori." },
+        { id: "TS36", testo: "Collaborare attivamente in team multidisciplinari." },
+        { id: "TS37", testo: "Dimostrare empatia e rispetto verso i compagni." },
+        { id: "TS38", testo: "Gestire lo stress e le sfide con atteggiamento propositivo." },
+        { id: "TS39", testo: "Essere consapevoli delle proprie inclinazioni per l'orientamento futuro." }
+      ]
+    },
+    {
+      competenza: "6. Cittadinanza (Ed. Civica)",
+      traguardi: [
+        { id: "TS40", testo: "Agire come cittadino responsabile nel rispetto della Costituzione." },
+        { id: "TS41", testo: "Conoscere le istituzioni europee e internazionali." },
+        { id: "TS42", testo: "Analizzare criticamente i fenomeni sociali e i problemi globali." },
+        { id: "TS43", testo: "Sviluppare progetti per la legalità e la lotta alle mafie." },
+        { id: "TS44", testo: "Rispettare i beni comuni e il patrimonio pubblico." },
+        { id: "TS45", testo: "Promuovere lo sviluppo sostenibile e l'economia circolare." },
+        { id: "TS46", testo: "Partecipare al dibattito democratico rispettando le opinioni altrui." },
+        { id: "TS47", testo: "Applicare i principi della sicurezza stradale e del primo soccorso." },
+        { id: "TS48", testo: "Riconoscere l'importanza del volontariato e dell'impegno civile." }
+      ]
+    },
+    {
+      competenza: "7. Imprenditoriale",
+      traguardi: [
+        { id: "TS49", testo: "Agire con autonomia e responsabilità per raggiungere obiettivi sfidanti." },
+        { id: "TS50", testo: "Valutare il potenziale innovativo di nuove idee e progetti." },
+        { id: "TS51", testo: "Adattarsi con flessibilità agli imprevisti e ai cambiamenti di contesto." },
+        { id: "TS52", testo: "Riflettere sulle proprie esperienze per orientare le scelte future." },
+        { id: "TS53", testo: "Collaborare e cooperare per trasformare idee in azioni concrete." }
+      ]
+    },
+    {
+      competenza: "8. Consapevolezza ed Espressione Culturale",
+      traguardi: [
+        { id: "TS54", testo: "Riconoscere e analizzare i principali stili e correnti artistiche e musicali." },
+        { id: "TS55", testo: "Utilizzare diversi linguaggi espressivi per comunicare messaggi complessi." },
+        { id: "TS56", testo: "Collocare opere e fenomeni culturali nel loro contesto storico e sociale." },
+        { id: "TS57", testo: "Apprezzare la varietà delle espressioni culturali come patrimonio dell'umanità." },
+        { id: "TS58", testo: "Partecipare attivamente a laboratori di teatro, musica o arte." },
+        { id: "TS59", testo: "Analizzare criticamente messaggi pubblicitari e prodotti mediatici." }
+      ]
+    }
   ]
 };
-
-// --- 2. DATABASE LIVELLI ---
-const DATABASE_GRIGLIE: Record<string, any> = {
-  "TS1": { iniziale: "solo se guidato", base: "in modo autonomo ma elementare", intermedio: "in modo adeguato", avanzato: "con piena consapevolezza" },
-  "TS2a": { iniziale: "in modo approssimativo", base: "in modo elementare", intermedio: "in modo adeguato", avanzato: "in modo ricco ed efficace" },
-  "TS5": { iniziale: "in modo approssimativo", base: "in modo elementare", intermedio: "in modo adeguato", avanzato: "in modo ricco ed efficace" },
-  "TS34": { iniziale: "in modo passivo", base: "con compiti solo da esecutore", intermedio: "agisce in modo propositivo e prende decisioni", avanzato: "si assume responsabilità e facilita il lavoro dei compagni" },
-  "TS35": { iniziale: "in modo poco consapevole e solo se guidato", base: "in modo poco consapevole", intermedio: "in modo consapevole e autonomo", avanzato: "evidenzia spirito critico nel processo di autovalutazione" }
-};
-
-export default function GeneratoreUDA() {
-  // --- STATI ---
-  const [titolo, setTitolo] = useState("");
-  const [materie, setMaterie] = useState<string[]>([]);
-  const [periodo, setPeriodo] = useState("Primo Quadr.");
-  const [ore, setOre] = useState("10");
-  const [scuola, setScuola] = useState("secondaria");
-  const [classe, setClasse] = useState("1");
-  const [descrizioneLibera, setDescrizioneLibera] = useState("");
-  const [selectedTraguardi, setSelectedTraguardi] = useState<string[]>([]);
-  const [udaFinale, setUdaFinale] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const listaMaterie = ["Italiano", "Storia", "Geografia", "Matematica", "Scienze", "Inglese", "Tecnologia", "Arte", "Musica", "Ed. Fisica", "Ed. Civica"];
-
-  // --- FUNZIONI DI SUPPORTO ---
-  const estrai = (testo: string, tag: string) => {
-    const regex = new RegExp(`\\[${tag}\\]\\s*([\\s\\S]*?)(?=\\s*\\[|$)`);
-    const match = testo.match(regex);
-    return match ? match[1].trim() : "---";
-  };
-
-  const trovaDatiCurricolo = (idTraguardo: string) => {
-    const sezioni = [...CURRICOLO_BURSI.primaria, ...CURRICOLO_BURSI.secondaria];
-    for (const sezione of sezioni) {
-      const traguardoTrovato = sezione.traguardi.find(t => t.id === idTraguardo);
-      if (traguardoTrovato) return { competenza: sezione.competenza, testo: traguardoTrovato.testo };
-    }
-    return null;
-  };
-
-  // --- LOGICA DOWNLOAD WORD ---
-  const scaricaWordCompilato = () => {
-    if (!udaFinale) return;
-
-    const contesto = estrai(udaFinale, "CONTESTO");
-    const consegna = estrai(udaFinale, "CONSEGNA");
-    const prodotto = estrai(udaFinale, "PRODOTTO");
-    const pianoTesto = estrai(udaFinale, "PIANO_LAVORO");
-
-    const righePiano = pianoTesto.split("\n")
-      .filter(r => r.includes("|"))
-      .map(r => {
-        const c = r.split("|").map(cell => cell.trim());
-        return `<tr>${c.map(val => `<td style="border:1px solid black; padding:5px;">${val}</td>`).join("")}</tr>`;
-      }).join("");
-
-    const righeGriglia = selectedTraguardi.map(t => {
-      const id = t.includes(":") ? t.split(":")[0].trim() : t.trim();
-      const datiBursi = trovaDatiCurricolo(id);
-      const livelli = DATABASE_GRIGLIE[id] || { iniziale: "Guidato", base: "Autonomo", intermedio: "Adeguato", avanzato: "Pieno" };
-      
-      return `
-        <tr>
-          <td style="border:1px solid black; padding:5px; font-size:9pt;">${datiBursi?.competenza || "---"}</td>
-          <td style="border:1px solid black; padding:5px; font-weight:bold;">${datiBursi?.testo || t}</td>
-          <td style="border:1px solid black; padding:5px;">${livelli.iniziale}</td>
-          <td style="border:1px solid black; padding:5px;">${livelli.base}</td>
-          <td style="border:1px solid black; padding:5px;">${livelli.intermedio}</td>
-          <td style="border:1px solid black; padding:5px;">${livelli.avanzato}</td>
-        </tr>`;
-    }).join("");
-
-    const html = `
-      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-      <head><meta charset='utf-8'><style>
-        table { border-collapse: collapse; width: 100%; font-family: Calibri; }
-        .header { background: #D9D9D9; font-weight: bold; text-align: center; border: 2px solid black; padding: 10px; }
-      </style></head>
-      <body>
-        <div class="header">UNITÀ DI APPRENDIMENTO - IC BURSI</div>
-        <p><b>Titolo:</b> ${titolo}</p>
-        <p><b>Situazione Problema:</b> ${contesto}</p>
-        <table>
-          <tr style="background:#EEE"><td>Fase</td><td>Materia</td><td>Attività</td><td>Metodo</td><td>Valut.</td><td>Ore</td></tr>
-          ${righePiano}
-        </table>
-        <br clear=all style='page-break-before:always'>
-        <div class="header">GRIGLIA DI VALUTAZIONE</div>
-        <table>
-          <tr style="background:#EEE"><td>Competenza</td><td>Traguardo</td><td>Iniz.</td><td>Base</td><td>Int.</td><td>Avanz.</td></tr>
-          ${righeGriglia}
-        </table>
-      </body></html>`;
-
-    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `UDA_${titolo || "Bursi"}.doc`;
-    link.click();
-  };
-
-  return (
-    <main className="p-8 max-w-4xl mx-auto space-y-6 bg-white shadow-lg rounded-xl mt-10">
-      <h1 className="text-3xl font-black text-slate-800 uppercase border-b pb-4 text-center">
-        Progettazione UDA - IC "F. Bursi"
-      </h1>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-bold text-slate-700 mb-2 uppercase">Titolo UDA</label>
-          <input className="w-full border p-2 rounded" placeholder="Es: Il clima" onChange={e => setTitolo(e.target.value)} />
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-slate-700 mb-2 uppercase">Ore Previste</label>
-          <input className="w-full border p-2 rounded" type="number" placeholder="Es: 20" onChange={e => setOre(e.target.value)} />
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {listaMaterie.map(m => (
-          <button 
-            key={m}
-            onClick={() => setMaterie(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m])}
-            className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${materie.includes(m) ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
-          >
-            {m}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex gap-4 pt-6">
-        <button 
-          className="flex-1 bg-black text-white p-4 rounded-xl font-bold uppercase hover:bg-gray-800 transition-all"
-          onClick={() => setUdaFinale("[PIANO_LAVORO]\n1 | Storia | Analisi fonti | Gruppo | Griglia | 2\n[CONTESTO]\nAnalisi delle fonti storiche del territorio.")}
-        >
-          Simula Generazione
-        </button>
-        <button 
-          className="flex-1 bg-green-700 text-white p-4 rounded-xl font-bold uppercase hover:bg-green-800 disabled:opacity-50 transition-all shadow-lg"
-          onClick={scaricaWordCompilato}
-          disabled={!udaFinale}
-        >
-          Scarica Word
-        </button>
-      </div>
-
-      {udaFinale && (
-        <div className="mt-8 p-6 bg-slate-50 border rounded-2xl">
-          <h2 className="text-xl font-bold text-slate-800 mb-4">Anteprima Testo Generato:</h2>
-          <pre className="text-sm whitespace-pre-wrap font-mono text-slate-600">{udaFinale}</pre>
-        </div>
-      )}
-    </main>
-  );
-}
-   "use client";
-
-import React, { useState } from 'react';
-
-// --- 1. ARCHIVIO INTEGRALE TRAGUARDI IC BURSI (Assicurati che sia definito qui sopra) ---
-// const CURRICOLO_BURSI = { ... }; 
-// const DATABASE_GRIGLIE = { ... };
 
 export default function GeneratoreUDA() {
   // --- STATI PER I DATI TECNICI ---
@@ -334,8 +218,6 @@ export default function GeneratoreUDA() {
     "Inglese", "Tecnologia", "Arte e Immagine", "Musica", "Ed. Fisica", "Religione"
   ];
 
-  // --- FUNZIONI DI SUPPORTO ---
-  
   const toggleMateria = (m: string) => {
     setMaterie(prev => prev.includes(m) ? prev.filter(item => item !== m) : [...prev, m]);
   };
@@ -347,43 +229,42 @@ export default function GeneratoreUDA() {
     );
   };
 
-  const trovaDatiCurricolo = (idTraguardo: string) => {
-    // @ts-ignore (Assumendo che CURRICOLO_BURSI sia disponibile nello scope globale o importato)
-    const sezioni = [...(CURRICOLO_BURSI?.primaria || []), ...(CURRICOLO_BURSI?.secondaria || [])];
-    for (const sezione of sezioni) {
-      const traguardoTrovato = sezione.traguardi.find((t: any) => t.id === idTraguardo);
-      if (traguardoTrovato) return { competenza: sezione.competenza, testo: traguardoTrovato.testo };
-    }
-    return null;
-  };
-
-  // --- LOGICA AI ---
-
+  // 1. FUNZIONE PER GENERARE LE 3 IDEE INIZIALI
   const handleGeneraProposte = async () => {
     if (!titolo || materie.length === 0) {
       alert("Inserisci almeno il titolo e una materia!");
       return;
     }
     setLoading(true);
+    setProposte([]);
+    setUdaFinale("");
     try {
       const res = await fetch("/api/generatore-uda", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ titolo, scuola, classe, descrizioneLibera, materie, periodo, ore, tipoRichiesta: "PROPOSTE" }),
+        body: JSON.stringify({ 
+          titolo, scuola, classe, descrizioneLibera, materie, periodo, ore,
+          tipoRichiesta: "PROPOSTE" 
+        }),
       });
       const data = await res.json();
       if (data.proposte) setProposte(data.proposte);
     } catch (err) {
-      alert("Errore di connessione.");
-    } finally { setLoading(false); }
+      alert("Errore di connessione al server.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const sviluppaUdaCompleta = async (propostaScelta: string) => {
+  // 2. FUNZIONE PER SVILUPPARE L'UDA COMPLETA
+const sviluppaUdaCompleta = async (propostaScelta: string) => {
     if (selectedTraguardi.length === 0) {
-      alert("Seleziona i traguardi dal curricolo!");
+      alert("Seleziona i traguardi dal curricolo! Sono vincoli assoluti.");
       return;
     }
     setLoading(true);
+    
+    // Capisce se stiamo compilando direttamente o sviluppando una proposta dell'AI
     const isCompilazioneDiretta = propostaScelta.includes("COMPILAZIONE_DIRETTA");
 
     try {
@@ -391,23 +272,46 @@ export default function GeneratoreUDA() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
-          titolo, scuola, classe, materie, periodo, ore, propostaScelta, 
-          traguardiScelti: selectedTraguardi, tipoRichiesta: "UDA_COMPLETA",
-          istruzioniSviluppo: `PROTOCOLLO IC BURSI: ${isCompilazioneDiretta ? 'COMPILAZIONE' : 'SVILUPPO'}. Classe ${classe}, ore ${ore}, traguardi: ${selectedTraguardi.join(" | ")}`
+          titolo, 
+          scuola, 
+          classe, 
+          materie, 
+          periodo, 
+          ore, 
+          propostaScelta, 
+          traguardiScelti: selectedTraguardi, 
+          tipoRichiesta: "UDA_COMPLETA",
+          // PROTOCOLLO DI TARATURA RIGIDA (Unificato e Potenziato)
+          istruzioniSviluppo: `
+            PROTOCOLLO DI GENERAZIONE VINCOLATA - IC BURSI
+            ${isCompilazioneDiretta 
+              ? "AGISCI COME COMPILATORE TECNICO: Trasforma le note del docente in un'UDA formattata senza aggiungere creatività esterna." 
+              : `SVILUPPA L'IDEA SCELTA: "${propostaScelta}"`
+            }
+
+            PARAMETRI REALI DA RISPETTARE (NON DEROGABILI):
+            1. CLASSE E ORDINE: Classe ${classe}ª, Scuola ${scuola}. Linguaggio e attività devono essere tarati esattamente su questa età.
+            2. TEMPI: Massimo ${ore} ore totali. La sequenza didattica deve essere realistica per questo monte ore.
+            3. MATERIE: ${materie.join(", ")}.
+            4. TRAGUARDI (ASSOLUTO): Usa SOLO ${selectedTraguardi.join(" | ")}. Divieto di inventare competenze chiave o obiettivi extra.
+            5. NOTE DOCENTE: Integra fedelmente queste indicazioni: ${descrizioneLibera}.
+            6. FORMATO: Output diretto, professionale, in Markdown, senza introduzioni discorsive.
+          `,
         }),
       });
       const data = await res.json();
       if (data.uda) setUdaFinale(data.uda);
-    } catch (err) { alert("Errore."); } finally { setLoading(false); }
-  };
-
-  // --- FUNZIONE PASSO 3: DOWNLOAD WORD ---
-  const scaricaWordCompilato = () => {
-    if (!udaFinale) {
-      alert("Genera prima l'UDA!");
-      return;
+    } catch (err) { 
+      alert("Errore nello sviluppo dell'UDA."); 
+    } finally { 
+      setLoading(false); 
     }
+  };
+ // --- FUNZIONE PASSO 3: DOWNLOAD MODELLO WORD (VERSIONE FINALE) ---
+  const scaricaWordCompilato = () => {
+    if (!udaFinale) return;
 
+    // 1. Funzione di estrazione con "pulizia" dei tag
     const estrai = (tag: string) => {
       const regex = new RegExp(`\\[${tag}\\]\\s*([\\s\\S]*?)(?=\\s*\\[|$)`);
       const match = udaFinale.match(regex);
@@ -418,90 +322,106 @@ export default function GeneratoreUDA() {
     const consegna = estrai("CONSEGNA");
     const prodotto = estrai("PRODOTTO");
     const pianoTesto = estrai("PIANO_LAVORO");
+    const traguardi = estrai("TRAGUARDI");
 
+    // 2. Logica Avanzata: Trasforma le righe dell'AI in vere righe di tabella HTML
+    // Si aspetta il formato: FASE: 1 | MATERIE: ... | DESCRIZIONE: ... | METODI: ... | VALUTAZIONE: ... | ORE: ...
     const righePianoLavoro = pianoTesto.split("\n")
-      .filter(riga => riga.includes("|"))
+      .filter(riga => riga.includes("|")) // Prende solo le righe che hanno il separatore
       .map(riga => {
-        const c = riga.split("|").map(cell => cell.trim());
-        return `<tr>${c.map(val => `<td style="border:1px solid black; padding:5px;">${val}</td>`).join("")}</tr>`;
+        const celle = riga.split("|").map(c => {
+          const valore = c.includes(":") ? c.split(":")[1] : c;
+          return valore ? valore.trim() : "---";
+        });
+        
+        // Se l'AI ha generato correttamente le 6 colonne
+        return `
+          <tr>
+            <td style="text-align:center">${celle[0] || ""}</td>
+            <td>${celle[1] || ""}</td>
+            <td>${celle[2] || ""}</td>
+            <td>${celle[3] || ""}</td>
+            <td>${celle[4] || ""}</td>
+            <td style="text-align:center">${celle[5] || ""}</td>
+          </tr>`;
       }).join("");
 
-    const righeGrigliaCompetenze = selectedTraguardi.map(t => {
-      const id = t.includes(":") ? t.split(":")[0].trim() : t.trim();
-      const datiBursi = trovaDatiCurricolo(id);
-      // @ts-ignore
-      const livelli = DATABASE_GRIGLIE?.[id] || { iniziale: "Guidato", base: "Autonomo", intermedio: "Adeguato", avanzato: "Pieno" };
-
-      return `
-        <tr>
-          <td style="border:1px solid black; font-size:9pt; background-color:#F9F9F9;">${datiBursi?.competenza || "---"}</td>
-          <td style="border:1px solid black; font-weight:bold;">${datiBursi?.testo || t}</td>
-          <td style="border:1px solid black;">${livelli.iniziale || livelli.iniz}</td>
-          <td style="border:1px solid black;">${livelli.base}</td>
-          <td style="border:1px solid black;">${livelli.intermedio || livelli.int}</td>
-          <td style="border:1px solid black;">${livelli.avanzato || livelli.avanz}</td>
-        </tr>`;
-    }).join("");
-
-    const htmlCompleto = `
+    const headerHtml = `
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
       <head><meta charset='utf-8'><style>
-        body { font-family: "Calibri", sans-serif; }
-        table { border-collapse: collapse; width: 100%; }
-        td { border: 1px solid black; padding: 6px; font-size: 10pt; vertical-align: top; }
-        .bg-grey { background-color: #D9D9D9; font-weight: bold; text-align: center; }
-      </style></head>
-      <body>
-        <div style="text-align:center; font-weight:bold; font-size:16pt; border:2px solid black; padding:10px; background:#D9D9D9;">MODELLO UDA - IC BURSI</div>
-        <br/>
-        <table>
-          <tr class="bg-grey"><td>Classe</td><td>Ore</td><td>Periodo</td><td>Materie</td></tr>
-          <tr><td>${classe}ª ${scuola}</td><td>${ore}</td><td>${periodo}</td><td>${materie.join(", ")}</td></tr>
-        </table>
-        <p><b>Titolo:</b> ${titolo}</p>
-        <p><b>Situazione Problema:</b> ${contesto}</p>
-        <p><b>Consegna:</b> ${consegna}</p>
-        <p><b>Piano di Lavoro:</b></p>
-        <table>
-          <tr class="bg-grey"><td>Fase</td><td>Materie</td><td>Descrizione</td><td>Metodi</td><td>Valutazione</td><td>Ore</td></tr>
-          ${righePianoLavoro}
-        </table>
-        <p><b>Prodotto Finale:</b> ${prodotto}</p>
-        <br clear=all style='page-break-before:always'>
-        <div style="text-align:center; font-weight:bold; border:2px solid black; padding:5px;">GRIGLIA DI VALUTAZIONE</div>
-        <table>
-          <tr class="bg-grey"><td>Competenza</td><td>Evidenze</td><td>Iniziale</td><td>Base</td><td>Intermedio</td><td>Avanzato</td></tr>
-          ${righeGrigliaCompetenze}
-        </table>
-      </body></html>`;
+        table { border-collapse: collapse; width: 100%; font-family: "Calibri", sans-serif; margin-bottom: 15px; table-layout: fixed; }
+        td, th { border: 1px solid black; padding: 6px; font-size: 10pt; vertical-align: top; word-wrap: break-word; }
+        .bg-grey { background-color: #E7E6E6; font-weight: bold; }
+        .header-title { text-align: center; font-weight: bold; font-size: 16pt; text-transform: uppercase; border: 2px solid black; padding: 10px; background-color: #D9D9D9; }
+        .section-title { font-weight: bold; background-color: #F2F2F2; }
+      </style></head><body>
+    `;
 
-    const blob = new Blob(['\ufeff', htmlCompleto], { type: 'application/msword' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `UDA_BURSI_${titolo.replace(/\s+/g, '_')}.doc`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
-  return (
-    <div className="p-8 max-w-5xl mx-auto space-y-6">
-      {/* Qui va la tua interfaccia JSX */}
-      <h1 className="text-2xl font-bold">Generatore UDA IC Bursi</h1>
-      {/* ... restanti campi input e bottoni ... */}
-      <button onClick={handleGeneraProposte} disabled={loading} className="bg-blue-600 text-white p-2 rounded">
-        {loading ? "Generazione..." : "1. Genera Proposte"}
-      </button>
+    const corpoHtml = `
+      <div class="header-title">MODELLO UDA<br/>SECONDARIA DI I GRADO “F. BURSI”</div>
+      <br/>
       
-      {/* Bottone Download (appare solo se udaFinale esiste) */}
-      {udaFinale && (
-        <button onClick={scaricaWordCompilato} className="bg-green-700 text-white p-2 rounded">
-          Scarica Word Finale
-        </button>
-      )}
-    </div>
-  );
-}
+      <table>
+        <tr class="bg-grey">
+          <td>Destinatari</td><td>Ore complessive</td><td>Anno Scolastico</td><td>Quadrimestre</td><td>Materie coinvolte</td>
+        </tr>
+        <tr>
+          <td>Classe ${classe}ª</td><td>${ore} ore</td><td>2025/2026</td><td>${periodo || "---"}</td><td>${materie.join(", ")}</td>
+        </tr>
+      </table>
+
+      <table>
+        <tr><td class="bg-grey" style="width:25%">Titolo UDA</td><td><b>${titolo}</b></td></tr>
+        <tr><td class="bg-grey">Contestualizzazione situazione/problema</td><td>${contesto}</td></tr>
+        <tr><td class="bg-grey">Consegna situazione/problema</td><td>${consegna}</td></tr>
+      </table>
+
+      <table>
+        <tr><td class="bg-grey" style="width:25%">Traguardi di competenza</td>
+        <td>${traguardi !== "---" ? traguardi.replace(/\n/g, "<br/>") : selectedTraguardi.join("<br/>")}</td></tr>
+      </table>
+
+      <table>
+        <tr class="bg-grey">
+          <td style="width:25%">Strumenti di valutazione</td><td>Prerequisiti</td><td>Soft Skills</td><td>Prodotto</td><td>Competenze</td>
+        </tr>
+        <tr>
+          <td class="bg-grey">Griglie previste</td>
+          <td>griglia prerequisiti</td>
+          <td>griglia processo</td>
+          <td>griglia prodotto/contenuto</td>
+          <td>griglia competenze</td>
+        </tr>
+      </table>
+
+      <br/>
+      <p style="font-weight:bold; font-size:12pt;">PIANO DI LAVORO (Sviluppo delle fasi):</p>
+      
+      <table>
+        <tr class="bg-grey" style="text-align:center">
+          <td style="width:8%">Fase</td>
+          <td style="width:15%">Materie</td>
+          <td style="width:30%">Descrizione</td>
+          <td style="width:20%">Metodologie e strumenti</td>
+          <td style="width:17%">Valutazione/Osservazione</td>
+          <td style="width:10%">Ore</td>
+        </tr>
+        ${righePianoLavoro || '<tr><td colspan="6" style="text-align:center italic">Piano di lavoro descritto nel corpo del testo o formato non rilevato</td></tr>'}
+      </table>
+
+      <p><b>PRODOTTO FINALE:</b> ${prodotto}</p>
+
+    </body></html>
+    `;
+
+    // 3. Generazione e Download del file
+    const blobContent = headerHtml + corpoHtml;
+    const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(blobContent);
+    const link = document.createElement("a");
+    link.href = source;
+    link.download = `UDA_BURSI_${classe}_${titolo.replace(/\s+/g, '_')}.doc`;
+    link.click();
+  };
   return (
     <main className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900">
       <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl p-8 border border-slate-100">
