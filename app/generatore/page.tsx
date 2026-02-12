@@ -147,19 +147,17 @@ const CURRICOLO_BURSI = {
   ]
 };
 
-// --- DATABASE GRIGLIE (Basato sui tuoi dati CSV) ---
+// --- 2. DATABASE LIVELLI ---
 const DATABASE_GRIGLIE: Record<string, any> = {
   "TS1": { iniziale: "solo se guidato", base: "in modo autonomo ma elementare", intermedio: "in modo adeguato", avanzato: "con piena consapevolezza" },
   "TS2a": { iniziale: "in modo approssimativo", base: "in modo elementare", intermedio: "in modo adeguato", avanzato: "in modo ricco ed efficace" },
   "TS5": { iniziale: "in modo approssimativo", base: "in modo elementare", intermedio: "in modo adeguato", avanzato: "in modo ricco ed efficace" },
-  "TS8": { iniziale: "solo se guidato", base: "in modo autonomo ma elementare", intermedio: "in modo adeguato", avanzato: "con piena consapevolezza" },
   "TS34": { iniziale: "in modo passivo", base: "con compiti solo da esecutore", intermedio: "agisce in modo propositivo e prende decisioni", avanzato: "si assume responsabilità e facilita il lavoro dei compagni" },
-  "TS49": { iniziale: "solo se guidato", base: "con compiti solo da esecutore", intermedio: "agisce in modo propositivo e prende decisioni", avanzato: "si assume responsabilità e facilita il lavoro dei compagni" },
-  "TS35": { iniziale: "in modo poco consapevole e solo se guidato", base: "in modo poco consapevole", intermedio: "in modo consapevole e autonomo", avanzato: "evidenzia spirito critico nel processo di autovalutazione" },
-  "TS50": { iniziale: "in modo poco consapevole e solo se guidato", base: "in modo poco consapevole", intermedio: "in modo consapevole e autonomo", avanzato: "evidenzia spirito critico nel processo di autovalutazione" }
+  "TS35": { iniziale: "in modo poco consapevole e solo se guidato", base: "in modo poco consapevole", intermedio: "in modo consapevole e autonomo", avanzato: "evidenzia spirito critico nel processo di autovalutazione" }
 };
 
 export default function GeneratoreUDA() {
+  // --- STATI ---
   const [titolo, setTitolo] = useState("");
   const [materie, setMaterie] = useState<string[]>([]);
   const [periodo, setPeriodo] = useState("Primo Quadr.");
@@ -173,116 +171,136 @@ export default function GeneratoreUDA() {
 
   const listaMaterie = ["Italiano", "Storia", "Geografia", "Matematica", "Scienze", "Inglese", "Tecnologia", "Arte", "Musica", "Ed. Fisica", "Ed. Civica"];
 
-  // Funzione per estrarre i blocchi di testo [TAG] generati dall'AI
+  // --- FUNZIONI DI SUPPORTO ---
   const estrai = (testo: string, tag: string) => {
     const regex = new RegExp(`\\[${tag}\\]\\s*([\\s\\S]*?)(?=\\s*\\[|$)`);
     const match = testo.match(regex);
     return match ? match[1].trim() : "---";
   };
 
+  const trovaDatiCurricolo = (idTraguardo: string) => {
+    const sezioni = [...CURRICOLO_BURSI.primaria, ...CURRICOLO_BURSI.secondaria];
+    for (const sezione of sezioni) {
+      const traguardoTrovato = sezione.traguardi.find(t => t.id === idTraguardo);
+      if (traguardoTrovato) return { competenza: sezione.competenza, testo: traguardoTrovato.testo };
+    }
+    return null;
+  };
+
+  // --- LOGICA DOWNLOAD WORD ---
   const scaricaWordCompilato = () => {
     if (!udaFinale) return;
 
-    // 1. Righe Piano di Lavoro (Tabella Fasi)
+    const contesto = estrai(udaFinale, "CONTESTO");
+    const consegna = estrai(udaFinale, "CONSEGNA");
+    const prodotto = estrai(udaFinale, "PRODOTTO");
     const pianoTesto = estrai(udaFinale, "PIANO_LAVORO");
-    const righePiano = pianoTesto.split("\n").filter(r => r.includes("|")).map(r => {
-      const c = r.split("|").map(cell => cell.trim());
-      return `<tr><td>${c[0]||""}</td><td>${c[1]||""}</td><td>${c[2]||""}</td><td>${c[3]||""}</td><td>${c[4]||""}</td><td>${c[5]||""}</td></tr>`;
-    }).join("");
 
-    // 2. Righe Griglia Competenze (Mappatura Traguardi -> Livelli)
+    const righePiano = pianoTesto.split("\n")
+      .filter(r => r.includes("|"))
+      .map(r => {
+        const c = r.split("|").map(cell => cell.trim());
+        return `<tr>${c.map(val => `<td style="border:1px solid black; padding:5px;">${val}</td>`).join("")}</tr>`;
+      }).join("");
+
     const righeGriglia = selectedTraguardi.map(t => {
-      const id = t.split(":")[0].trim();
-      const livelli = DATABASE_GRIGLIE[id] || { iniziale: "Solo se guidato", base: "In autonomia", intermedio: "Adeguato", avanzato: "Piena padronanza" };
+      const id = t.includes(":") ? t.split(":")[0].trim() : t.trim();
+      const datiBursi = trovaDatiCurricolo(id);
+      const livelli = DATABASE_GRIGLIE[id] || { iniziale: "Guidato", base: "Autonomo", intermedio: "Adeguato", avanzato: "Pieno" };
+      
       return `
         <tr>
-          <td style="font-weight:bold">${t}</td>
-          <td>${livelli.iniziale}</td>
-          <td>${livelli.base}</td>
-          <td>${livelli.intermedio}</td>
-          <td>${livelli.avanzato}</td>
+          <td style="border:1px solid black; padding:5px; font-size:9pt;">${datiBursi?.competenza || "---"}</td>
+          <td style="border:1px solid black; padding:5px; font-weight:bold;">${datiBursi?.testo || t}</td>
+          <td style="border:1px solid black; padding:5px;">${livelli.iniziale}</td>
+          <td style="border:1px solid black; padding:5px;">${livelli.base}</td>
+          <td style="border:1px solid black; padding:5px;">${livelli.intermedio}</td>
+          <td style="border:1px solid black; padding:5px;">${livelli.avanzato}</td>
         </tr>`;
     }).join("");
 
-    const blobContent = `
+    const html = `
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
       <head><meta charset='utf-8'><style>
-        table { border-collapse: collapse; width: 100%; font-family: Calibri; margin-bottom: 20px; }
-        td, th { border: 1px solid black; padding: 8px; font-size: 10pt; }
-        .header { background-color: #D9D9D9; text-align: center; font-weight: bold; font-size: 14pt; padding: 10px; }
+        table { border-collapse: collapse; width: 100%; font-family: Calibri; }
+        .header { background: #D9D9D9; font-weight: bold; text-align: center; border: 2px solid black; padding: 10px; }
       </style></head>
       <body>
-        <div class="header">MODELLO UDA - IC BURSI</div>
+        <div class="header">UNITÀ DI APPRENDIMENTO - IC BURSI</div>
+        <p><b>Titolo:</b> ${titolo}</p>
+        <p><b>Situazione Problema:</b> ${contesto}</p>
         <table>
-          <tr><td><b>Titolo:</b> ${titolo}</td><td><b>Classe:</b> ${classe}ª ${scuola}</td></tr>
-          <tr><td><b>Materie:</b> ${materie.join(", ")}</td><td><b>Ore:</b> ${ore}</td></tr>
-        </table>
-        <h3>PIANO DI LAVORO</h3>
-        <table>
-          <tr style="background:#EEE"><th>Fase</th><th>Materie</th><th>Descrizione</th><th>Metodi</th><th>Valutazione</th><th>Ore</th></tr>
+          <tr style="background:#EEE"><td>Fase</td><td>Materia</td><td>Attività</td><td>Metodo</td><td>Valut.</td><td>Ore</td></tr>
           ${righePiano}
         </table>
         <br clear=all style='page-break-before:always'>
         <div class="header">GRIGLIA DI VALUTAZIONE</div>
         <table>
-          <tr style="background:#EEE"><th>Traguardo</th><th>Iniziale</th><th>Base</th><th>Intermedio</th><th>Avanzato</th></tr>
+          <tr style="background:#EEE"><td>Competenza</td><td>Traguardo</td><td>Iniz.</td><td>Base</td><td>Int.</td><td>Avanz.</td></tr>
           ${righeGriglia}
         </table>
       </body></html>`;
 
-    const blob = new Blob(['\ufeff', blobContent], { type: 'application/msword' });
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `UDA_${titolo}.doc`;
+    link.href = url;
+    link.download = `UDA_${titolo || "Bursi"}.doc`;
     link.click();
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold border-b pb-2">Generatore UDA Integrale</h1>
+    <main className="p-8 max-w-4xl mx-auto space-y-6 bg-white shadow-lg rounded-xl mt-10">
+      <h1 className="text-3xl font-black text-slate-800 uppercase border-b pb-4 text-center">
+        Progettazione UDA - IC "F. Bursi"
+      </h1>
       
-      {/* Input Sezione */}
       <div className="grid grid-cols-2 gap-4">
-        <input placeholder="Titolo UDA" className="border p-2" onChange={e => setTitolo(e.target.value)} />
-        <input type="number" placeholder="Ore" className="border p-2" onChange={e => setOre(e.target.value)} />
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-2 uppercase">Titolo UDA</label>
+          <input className="w-full border p-2 rounded" placeholder="Es: Il clima" onChange={e => setTitolo(e.target.value)} />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-slate-700 mb-2 uppercase">Ore Previste</label>
+          <input className="w-full border p-2 rounded" type="number" placeholder="Es: 20" onChange={e => setOre(e.target.value)} />
+        </div>
       </div>
 
-      {/* Selezione Materie */}
       <div className="flex flex-wrap gap-2">
         {listaMaterie.map(m => (
           <button 
-            key={m} 
-            onClick={() => setMaterie(prev => prev.includes(m) ? prev.filter(x => x!==m) : [...prev, m])}
-            className={`px-3 py-1 rounded text-sm ${materie.includes(m) ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+            key={m}
+            onClick={() => setMaterie(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m])}
+            className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${materie.includes(m) ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
           >
             {m}
           </button>
         ))}
       </div>
 
-      <textarea 
-        placeholder="Note aggiuntive per l'AI..." 
-        className="w-full border p-2 h-24"
-        onChange={e => setDescrizioneLibera(e.target.value)}
-      />
-
-      <div className="flex gap-4">
+      <div className="flex gap-4 pt-6">
         <button 
-          onClick={() => setUdaFinale("[PIANO_LAVORO]\n1 | Italiano | Lettura | Frontale | Osservazione | 2\n[CONTESTO]\nEsempio contesto...")}
-          className="bg-black text-white px-6 py-2 rounded"
+          className="flex-1 bg-black text-white p-4 rounded-xl font-bold uppercase hover:bg-gray-800 transition-all"
+          onClick={() => setUdaFinale("[PIANO_LAVORO]\n1 | Storia | Analisi fonti | Gruppo | Griglia | 2\n[CONTESTO]\nAnalisi delle fonti storiche del territorio.")}
         >
           Simula Generazione
         </button>
-        
         <button 
+          className="flex-1 bg-green-700 text-white p-4 rounded-xl font-bold uppercase hover:bg-green-800 disabled:opacity-50 transition-all shadow-lg"
           onClick={scaricaWordCompilato}
           disabled={!udaFinale}
-          className="bg-green-700 text-white px-6 py-2 rounded disabled:opacity-50"
         >
-          Scarica Word Progettazione
+          Scarica Word
         </button>
       </div>
-    </div>
+
+      {udaFinale && (
+        <div className="mt-8 p-6 bg-slate-50 border rounded-2xl">
+          <h2 className="text-xl font-bold text-slate-800 mb-4">Anteprima Testo Generato:</h2>
+          <pre className="text-sm whitespace-pre-wrap font-mono text-slate-600">{udaFinale}</pre>
+        </div>
+      )}
+    </main>
   );
 }
     const livelli = getGrigliaLivelli(id);
