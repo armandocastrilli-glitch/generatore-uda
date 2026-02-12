@@ -4,13 +4,18 @@ export async function POST(req: Request) {
   try {
     const { titolo, classe, periodo, ore, materie } = await req.json();
     
-    // LA TUA CHIAVE GROQ INSERITA DIRETTAMENTE
-    const GROQ_API_KEY = "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"; 
+    // Recuperiamo la chiave in modo sicuro dalle variabili d'ambiente di Vercel
+    const apiKey = process.env.GROQ_API_KEY;
+
+    if (!apiKey) {
+      console.error("ERRORE: Chiave API non configurata su Vercel");
+      return NextResponse.json({ error: "Configurazione server mancante" }, { status: 500 });
+    }
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${GROQ_API_KEY}`,
+        "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -18,11 +23,11 @@ export async function POST(req: Request) {
         messages: [
           {
             role: "system",
-            content: "Sei un esperto di didattica italiana. Genera Unità di Apprendimento (UDA) professionali per la scuola media, formattate in Markdown, complete di competenze, fasi e griglia di valutazione."
+            content: "Sei un esperto di didattica italiana. Genera Unità di Apprendimento (UDA) professionali, formattate in Markdown, complete di competenze, fasi e griglia di valutazione."
           },
           {
             role: "user",
-            content: `Genera un'UDA per l'IC "F. Bursi" di Fiorano Modenese. 
+            content: `Genera un'UDA per l'IC "F. Bursi". 
                       Titolo: ${titolo}
                       Classe: ${classe}
                       Materie: ${materie.join(", ")}
@@ -37,13 +42,11 @@ export async function POST(req: Request) {
     const data = await response.json();
 
     if (data.error) {
-      console.error("ERRORE GROQ:", data.error.message);
       return NextResponse.json({ error: data.error.message }, { status: 500 });
     }
 
-    const udaProdotta = data.choices[0].message.content;
-
-    return NextResponse.json({ uda: udaProdotta });
+    const text = data.choices[0].message.content;
+    return NextResponse.json({ uda: text });
 
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
