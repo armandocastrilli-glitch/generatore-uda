@@ -306,11 +306,26 @@ const sviluppaUdaCompleta = async (propostaScelta: string) => {
       setLoading(false); 
     }
   };
- // --- FUNZIONE PASSO 3: DOWNLOAD MODELLO WORD (VERSIONE FINALE) ---
+// --- FUNZIONE PASSO 3: DOWNLOAD MODELLO WORD INTEGRALE ---
   const scaricaWordCompilato = () => {
     if (!udaFinale) return;
 
-    // 1. Funzione di estrazione con "pulizia" dei tag
+    // 1. Funzione per trovare la Competenza e il Testo partendo dall'ID (es. TS1)
+    const trovaDatiCurricolo = (idTraguardo: string) => {
+      const sezioni = [...CURRICOLO_BURSI.primaria, ...CURRICOLO_BURSI.secondaria];
+      for (const sezione of sezioni) {
+        const traguardoTrovato = sezione.traguardi.find(t => t.id === idTraguardo);
+        if (traguardoTrovato) {
+          return {
+            competenza: sezione.competenza,
+            testo: traguardoTrovato.testo
+          };
+        }
+      }
+      return null;
+    };
+
+    // 2. Estrazione dati dai tag generati dall'AI
     const estrai = (tag: string) => {
       const regex = new RegExp(`\\[${tag}\\]\\s*([\\s\\S]*?)(?=\\s*\\[|$)`);
       const match = udaFinale.match(regex);
@@ -321,19 +336,16 @@ const sviluppaUdaCompleta = async (propostaScelta: string) => {
     const consegna = estrai("CONSEGNA");
     const prodotto = estrai("PRODOTTO");
     const pianoTesto = estrai("PIANO_LAVORO");
-    const traguardi = estrai("TRAGUARDI");
+    const traguardiDallAI = estrai("TRAGUARDI");
 
-    // 2. Logica Avanzata: Trasforma le righe dell'AI in vere righe di tabella HTML
-    // Si aspetta il formato: FASE: 1 | MATERIE: ... | DESCRIZIONE: ... | METODI: ... | VALUTAZIONE: ... | ORE: ...
+    // 3. Trasformazione Piano di Lavoro in tabella HTML
     const righePianoLavoro = pianoTesto.split("\n")
-      .filter(riga => riga.includes("|")) // Prende solo le righe che hanno il separatore
+      .filter(riga => riga.includes("|"))
       .map(riga => {
         const celle = riga.split("|").map(c => {
           const valore = c.includes(":") ? c.split(":")[1] : c;
           return valore ? valore.trim() : "---";
         });
-        
-        // Se l'AI ha generato correttamente le 6 colonne
         return `
           <tr>
             <td style="text-align:center">${celle[0] || ""}</td>
@@ -345,14 +357,37 @@ const sviluppaUdaCompleta = async (propostaScelta: string) => {
           </tr>`;
       }).join("");
 
+    // 4. GENERAZIONE GRIGLIA COMPETENZE (Esattamente come il file Excel)
+    const righeGrigliaCompetenze = selectedTraguardi.map(t => {
+      const id = t.split(":")[0].trim();
+      const datiBursi = trovaDatiCurricolo(id);
+      
+      // Recupera i testi dei livelli dal DATABASE_GRIGLIE (quello basato sul tuo CSV)
+      const livelli = DATABASE_GRIGLIE[id] || { 
+        iniziale: "Svolge compiti semplici solo se guidato.", 
+        base: "Svolge compiti semplici in autonomia.", 
+        intermedio: "Svolge compiti complessi in modo adeguato.", 
+        avanzato: "Svolge compiti complessi con padronanza." 
+      };
+
+      return `
+        <tr>
+          <td style="width:20%; background-color:#F9F9F9; font-size:9pt;">${datiBursi?.competenza || "---"}</td>
+          <td style="width:20%; font-weight:bold;">${datiBursi?.testo || t}</td>
+          <td>${livelli.iniziale || livelli.iniz}</td>
+          <td>${livelli.base}</td>
+          <td>${livelli.intermedio || livelli.int}</td>
+          <td>${livelli.avanzato || livelli.avanz}</td>
+        </tr>`;
+    }).join("");
+
     const headerHtml = `
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
       <head><meta charset='utf-8'><style>
         table { border-collapse: collapse; width: 100%; font-family: "Calibri", sans-serif; margin-bottom: 15px; table-layout: fixed; }
         td, th { border: 1px solid black; padding: 6px; font-size: 10pt; vertical-align: top; word-wrap: break-word; }
-        .bg-grey { background-color: #E7E6E6; font-weight: bold; }
+        .bg-grey { background-color: #E7E6E6; font-weight: bold; text-align: center; }
         .header-title { text-align: center; font-weight: bold; font-size: 16pt; text-transform: uppercase; border: 2px solid black; padding: 10px; background-color: #D9D9D9; }
-        .section-title { font-weight: bold; background-color: #F2F2F2; }
       </style></head><body>
     `;
 
@@ -361,12 +396,8 @@ const sviluppaUdaCompleta = async (propostaScelta: string) => {
       <br/>
       
       <table>
-        <tr class="bg-grey">
-          <td>Destinatari</td><td>Ore complessive</td><td>Anno Scolastico</td><td>Quadrimestre</td><td>Materie coinvolte</td>
-        </tr>
-        <tr>
-          <td>Classe ${classe}ª</td><td>${ore} ore</td><td>2025/2026</td><td>${periodo || "---"}</td><td>${materie.join(", ")}</td>
-        </tr>
+        <tr class="bg-grey"><td>Destinatari</td><td>Ore</td><td>Anno Scolastico</td><td>Quadrimestre</td><td>Materie</td></tr>
+        <tr><td>Classe ${classe}ª</td><td>${ore} ore</td><td>2025/2026</td><td>${periodo || "---"}</td><td>${materie.join(", ")}</td></tr>
       </table>
 
       <table>
@@ -377,43 +408,41 @@ const sviluppaUdaCompleta = async (propostaScelta: string) => {
 
       <table>
         <tr><td class="bg-grey" style="width:25%">Traguardi di competenza</td>
-        <td>${traguardi !== "---" ? traguardi.replace(/\n/g, "<br/>") : selectedTraguardi.join("<br/>")}</td></tr>
+        <td>${traguardiDallAI !== "---" ? traguardiDallAI.replace(/\n/g, "<br/>") : selectedTraguardi.join("<br/>")}</td></tr>
       </table>
 
       <table>
-        <tr class="bg-grey">
-          <td style="width:25%">Strumenti di valutazione</td><td>Prerequisiti</td><td>Soft Skills</td><td>Prodotto</td><td>Competenze</td>
-        </tr>
-        <tr>
-          <td class="bg-grey">Griglie previste</td>
-          <td>griglia prerequisiti</td>
-          <td>griglia processo</td>
-          <td>griglia prodotto/contenuto</td>
-          <td>griglia competenze</td>
-        </tr>
+        <tr class="bg-grey"><td style="width:25%">Strumenti di valutazione</td><td>Prerequisiti</td><td>Soft Skills</td><td>Prodotto</td><td>Competenze</td></tr>
+        <tr><td class="bg-grey">Griglie previste</td><td>griglia prerequisiti</td><td>griglia processo</td><td>griglia prodotto/contenuto</td><td>griglia competenze</td></tr>
       </table>
 
       <br/>
-      <p style="font-weight:bold; font-size:12pt;">PIANO DI LAVORO (Sviluppo delle fasi):</p>
-      
+      <p style="font-weight:bold; font-size:12pt;">PIANO DI LAVORO:</p>
       <table>
-        <tr class="bg-grey" style="text-align:center">
-          <td style="width:8%">Fase</td>
-          <td style="width:15%">Materie</td>
-          <td style="width:30%">Descrizione</td>
-          <td style="width:20%">Metodologie e strumenti</td>
-          <td style="width:17%">Valutazione/Osservazione</td>
-          <td style="width:10%">Ore</td>
+        <tr class="bg-grey">
+          <td style="width:8%">Fase</td><td style="width:15%">Materie</td><td style="width:30%">Descrizione</td><td style="width:20%">Metodi</td><td style="width:17%">Valutazione</td><td style="width:10%">Ore</td>
         </tr>
-        ${righePianoLavoro || '<tr><td colspan="6" style="text-align:center italic">Piano di lavoro descritto nel corpo del testo o formato non rilevato</td></tr>'}
+        ${righePianoLavoro}
       </table>
-
       <p><b>PRODOTTO FINALE:</b> ${prodotto}</p>
 
+      <br clear=all style='mso-special-character:line-break;page-break-before:always'>
+      <div class="header-title" style="font-size:14pt;">GRIGLIA DI VALUTAZIONE DELLE COMPETENZE</div>
+      <br/>
+      <table>
+        <tr class="bg-grey">
+          <td>COMPETENZA</td>
+          <td>EVIDENZE / TRAGUARDI</td>
+          <td>INIZIALE (4-5)</td>
+          <td>BASE (6)</td>
+          <td>INTERMEDIO (7-8)</td>
+          <td>AVANZATO (9-10)</td>
+        </tr>
+        ${righeGrigliaCompetenze}
+      </table>
     </body></html>
     `;
 
-    // 3. Generazione e Download del file
     const blobContent = headerHtml + corpoHtml;
     const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(blobContent);
     const link = document.createElement("a");
