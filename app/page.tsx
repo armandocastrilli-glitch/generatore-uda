@@ -1,117 +1,119 @@
 "use client";
-
 import { useState } from "react";
-import { createClient } from "@supabase/supabase-js";
-import { useRouter } from "next/navigation";
 
-// Inizializzazione del client Supabase con le variabili d'ambiente
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export default function GeneratoreUDA() {
+  const [scuola, setScuola] = useState("primaria");
+  const [classe, setClasse] = useState("1");
+  const [titolo, setTitolo] = useState("");
+  const [descrizioneLibera, setDescrizioneLibera] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [proposte, setProposte] = useState<string[]>([]);
 
-export default function LoginPage() {
-  const [code, setCode] = useState("");
-  const [message, setMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!code) return;
-
-    setIsLoading(true);
-    setMessage("Verifica del codice in corso...");
-
+  const handleGeneraProposte = async () => {
+    setLoading(true);
     try {
-      // Interroga la tabella invitation_codes per trovare il codice inserito
-      const { data, error } = await supabase
-        .from("invitation_codes")
-        .select("*")
-        .eq("code", code.trim())
-        .eq("is_used", false)
-        .single();
-
-      if (error || !data) {
-        setMessage("Codice errato, inesistente o già utilizzato.");
-        setIsLoading(false);
-      } else {
-        setMessage("Accesso autorizzato! Reindirizzamento...");
-        
-        // Piccola pausa per dare feedback visivo all'utente
-        setTimeout(() => {
-          router.push("/generatore");
-        }, 1500);
-      }
+      const res = await fetch("/api/generatore-uda", {
+        method: "POST",
+        body: JSON.stringify({ 
+          titolo, 
+          scuola, 
+          classe, 
+          descrizioneLibera,
+          tipoRichiesta: "PROPOSTE_SINTETICHE" // Specifichiamo che vogliamo le 3 bozze
+        }),
+      });
+      const data = await response.json();
+      // Supponiamo che l'AI ci restituisca un array di 3 stringhe o un testo diviso
+      setProposte(data.proposte); 
     } catch (err) {
-      console.error(err);
-      setMessage("Errore di connessione al database.");
-      setIsLoading(false);
+      alert("Errore nella generazione");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen bg-slate-50 p-4 font-sans text-slate-900">
-      <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md border border-slate-100">
-        <div className="text-center mb-10">
-          <div className="inline-block p-3 bg-blue-50 rounded-2xl mb-4">
-            <svg 
-              className="w-10 h-10 text-blue-600" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
+    <main className="min-h-screen bg-slate-50 p-8 font-sans">
+      <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl p-8 border border-slate-100">
+        <h1 className="text-3xl font-black text-slate-800 mb-2">Nuova Progettazione UDA</h1>
+        <p className="text-slate-500 mb-8">Definisci i parametri per ricevere 3 proposte creative.</p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {/* SELETTORE SCUOLA */}
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-2">Ordine di Scuola</label>
+            <select 
+              value={scuola}
+              onChange={(e) => { setScuola(e.target.value); setClasse("1"); }}
+              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8-0v4h8z" />
-            </svg>
+              <option value="primaria">Scuola Primaria</option>
+              <option value="secondaria">Secondaria I Grado</option>
+            </select>
           </div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight">
-            UDA Generator
-          </h1>
-          <p className="text-slate-500 mt-2 font-medium">I.C. "F. Bursi" - Portale Docenti</p>
+
+          {/* CLASSE DINAMICA */}
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-2">Classe</label>
+            <select 
+              value={classe}
+              onChange={(e) => setClasse(e.target.value)}
+              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+            >
+              {[...Array(scuola === "primaria" ? 5 : 3)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>{i + 1}ª</option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-6">
+        {/* TITOLO E DESCRIZIONE */}
+        <div className="space-y-6">
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2 ml-1">
-              Codice di Accesso Istituzionale
-            </label>
-            <input
+            <label className="block text-sm font-bold text-slate-700 mb-2">Argomento / Titolo Predefinito</label>
+            <input 
               type="text"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="Es: BURSI_2026_DOC"
-              disabled={isLoading}
-              className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all text-lg font-mono placeholder:text-slate-300"
+              value={titolo}
+              onChange={(e) => setTitolo(e.target.value)}
+              placeholder="Es: Il ciclo dell'acqua, I Longobardi..."
+              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none"
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={isLoading || !code}
-            className={`w-full font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-[0.98] ${
-              isLoading || !code
-                ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200"
-            }`}
-          >
-            {isLoading ? "Verifica..." : "Accedi al Sistema"}
-          </button>
-        </form>
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-2">Cosa vuoi realizzare? (Descrizione Libera)</label>
+            <textarea 
+              value={descrizioneLibera}
+              onChange={(e) => setDescrizioneLibera(e.target.value)}
+              placeholder="Descrivi qui l'idea, eventuali uscite didattiche o laboratori specifici..."
+              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl h-32 outline-none"
+            />
+          </div>
+        </div>
 
-        {message && (
-          <div className={`mt-6 p-4 rounded-xl text-center text-sm font-bold animate-in fade-in slide-in-from-bottom-2 duration-300 ${
-            message.includes("autorizzato") 
-              ? "bg-green-50 text-green-700 border border-green-100" 
-              : "bg-red-50 text-red-700 border border-red-100"
-          }`}>
-            {message}
+        <button 
+          onClick={handleGeneraProposte}
+          disabled={loading || !titolo}
+          className="w-full mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg"
+        >
+          {loading ? "Elaborazione idee..." : "Genera 3 Proposte Sintetiche"}
+        </button>
+
+        {/* AREA RISULTATI (3 BOX) */}
+        {proposte.length > 0 && (
+          <div className="mt-10 grid grid-cols-1 gap-6">
+            <h2 className="text-xl font-bold text-slate-800">Scegli la base da sviluppare:</h2>
+            {proposte.map((p, idx) => (
+              <div key={idx} className="p-6 border-2 border-slate-100 rounded-2xl bg-blue-50/50 hover:border-blue-200 transition-colors">
+                <div className="flex justify-between items-start mb-4">
+                  <span className="bg-blue-600 text-white text-xs font-black px-3 py-1 rounded-full uppercase">Proposta {idx + 1}</span>
+                  <button className="text-blue-600 text-sm font-bold">Sviluppa questa →</button>
+                </div>
+                <div className="prose prose-slate max-w-none">{p}</div>
+              </div>
+            ))}
           </div>
         )}
-
-        <div className="mt-10 pt-6 border-t border-slate-50 text-center">
-          <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">
-            Sicurezza Crittografata Supabase
-          </p>
-        </div>
       </div>
     </main>
   );
