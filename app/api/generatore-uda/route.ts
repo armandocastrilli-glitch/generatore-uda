@@ -5,7 +5,6 @@ export async function POST(req: Request) {
     const { titolo, classe, periodo, ore, materie } = await req.json();
     const apiKey = "AIzaSyDZzelj-ifA85l_C53YVXgHYiLHW3o8NjY"; 
 
-    // USIAMO IL MODELLO STABILE (1.5-FLASH) INVECE DI QUELLO EXPERIMENTAL
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
@@ -24,7 +23,13 @@ export async function POST(req: Request) {
     const data = await response.json();
 
     if (data.error) {
+      console.error("DETTAGLIO ERRORE GOOGLE:", data.error);
       return NextResponse.json({ error: data.error.message }, { status: 500 });
+    }
+
+    if (!data.candidates) {
+      console.error("RISPOSTA VUOTA DA GOOGLE:", data);
+      return NextResponse.json({ error: "Risposta vuota" }, { status: 500 });
     }
 
     return NextResponse.json({ uda: data.candidates[0].content.parts[0].text });
