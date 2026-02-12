@@ -1,36 +1,45 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
     const { titolo, classe, periodo, ore, materie } = await req.json();
-    const apiKey = "AIzaSyDZzelj-ifA85l_C53YVXgHYiLHW3o8NjY"; 
+    
+    // Inizializziamo l'SDK con la tua chiave
+    // Usiamo l'SDK ufficiale che gestisce internamente il routing v1/v1beta
+    const genAI = new GoogleGenerativeAI("AIzaSyDZzelj-ifA85l_C53YVXgHYiLHW3o8NjY");
+    
+    // Specifichiamo il modello senza prefissi di versione, l'SDK farà il resto
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    // VERSION v1beta + MODELLO -latest (La combinazione più potente e compatibile)
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `Sei un esperto di didattica. Genera un'UDA per l'IC "F. Bursi". Titolo: ${titolo}, Classe: ${classe}, Materie: ${materie.join(", ")}.`
-            }]
-          }]
-        })
-      }
-    );
+    const prompt = `Sei un esperto di didattica per la scuola secondaria di primo grado italiana. 
+    Genera un'Unità di Apprendimento (UDA) per l'IC "F. Bursi" di Fiorano Modenese.
+    
+    DATI:
+    - Titolo: ${titolo}
+    - Classe: ${classe}ª
+    - Periodo: ${periodo}
+    - Ore previste: ${ore}
+    - Materie coinvolte: ${materie.join(", ")}
+    
+    L'UDA deve includere: Competenze chiave europee, Traguardi di competenza, Obiettivi di apprendimento, 
+    una Tabella con le fasi di lavoro e una Griglia di valutazione. Usa Markdown per la formattazione.`;
 
-    const data = await response.json();
+    // Esecuzione della generazione
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
 
-    if (data.error) {
-      console.error("ERRORE DIRETTO:", data.error.message);
-      return NextResponse.json({ error: data.error.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ uda: data.candidates[0].content.parts[0].text });
+    // Risposta al front-end
+    return NextResponse.json({ uda: text });
 
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    // Questo log apparirà su Vercel se l'SDK fallisce
+    console.error("ERRORE SDK GOOGLE:", error.message);
+    
+    return NextResponse.json({ 
+      error: "Errore durante la generazione con SDK", 
+      dettaglio: error.message 
+    }, { status: 500 });
   }
 }
