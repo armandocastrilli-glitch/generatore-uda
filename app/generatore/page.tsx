@@ -147,111 +147,143 @@ const CURRICOLO_BURSI = {
   ]
 };
 
-// --- 2. LOGICA GRIGLIE SPECIFICHE DAL CSV ---
-const getGrigliaLivelli = (id: string) => {
-  const mappatura: Record<string, any> = {
-    "TS1": { iniziale: "solo se guidato", base: "in modo autonomo ma elementare", intermedio: "in modo adeguato", avanzato: "con piena consapevolezza" },
-    "TS2a": { iniziale: "in modo approssimativo", base: "in modo elementare", intermedio: "in modo adeguato", avanzato: "in modo ricco ed efficace" },
-    "TS5": { iniziale: "in modo approssimativo", base: "in modo elementare", intermedio: "in modo adeguato", avanzato: "in modo ricco ed efficace" },
-    "TS8": { iniziale: "solo se guidato", base: "in modo autonomo ma elementare", intermedio: "in modo adeguato", avanzato: "con piena consapevolezza" },
-    "TS34": { iniziale: "in modo passivo", base: "con compiti solo da esecutore", intermedio: "agisce in modo propositivo e prende decisioni", avanzato: "si assume responsabilità e facilita il lavoro dei compagni" },
-    "TS49": { iniziale: "solo se guidato", base: "con compiti solo da esecutore", intermedio: "agisce in modo propositivo e prende decisioni", avanzato: "si assume responsabilità e facilita il lavoro dei compagni" },
-    "TS35": { iniziale: "in modo poco consapevole e solo se guidato", base: "in modo poco consapevole", intermedio: "in modo consapevole e autonomo", avanzato: "evidenzia spirito critico nel processo di autovalutazione" },
-    "TS50": { iniziale: "in modo poco consapevole e solo se guidato", base: "in modo poco consapevole", intermedio: "in modo consapevole e autonomo", avanzato: "evidenzia spirito critico nel processo di autovalutazione" }
-  };
+"use client";
 
-  return mappatura[id] || { 
-    iniziale: "Solo se guidato.", base: "In autonomia elementare.", intermedio: "In modo adeguato.", avanzato: "Con piena padronanza." 
-  };
+import React, { useState } from 'react';
+
+// --- DATABASE GRIGLIE (Basato sui tuoi dati CSV) ---
+const DATABASE_GRIGLIE: Record<string, any> = {
+  "TS1": { iniziale: "solo se guidato", base: "in modo autonomo ma elementare", intermedio: "in modo adeguato", avanzato: "con piena consapevolezza" },
+  "TS2a": { iniziale: "in modo approssimativo", base: "in modo elementare", intermedio: "in modo adeguato", avanzato: "in modo ricco ed efficace" },
+  "TS5": { iniziale: "in modo approssimativo", base: "in modo elementare", intermedio: "in modo adeguato", avanzato: "in modo ricco ed efficace" },
+  "TS8": { iniziale: "solo se guidato", base: "in modo autonomo ma elementare", intermedio: "in modo adeguato", avanzato: "con piena consapevolezza" },
+  "TS34": { iniziale: "in modo passivo", base: "con compiti solo da esecutore", intermedio: "agisce in modo propositivo e prende decisioni", avanzato: "si assume responsabilità e facilita il lavoro dei compagni" },
+  "TS49": { iniziale: "solo se guidato", base: "con compiti solo da esecutore", intermedio: "agisce in modo propositivo e prende decisioni", avanzato: "si assume responsabilità e facilita il lavoro dei compagni" },
+  "TS35": { iniziale: "in modo poco consapevole e solo se guidato", base: "in modo poco consapevole", intermedio: "in modo consapevole e autonomo", avanzato: "evidenzia spirito critico nel processo di autovalutazione" },
+  "TS50": { iniziale: "in modo poco consapevole e solo se guidato", base: "in modo poco consapevole", intermedio: "in modo consapevole e autonomo", avanzato: "evidenzia spirito critico nel processo di autovalutazione" }
 };
 
 export default function GeneratoreUDA() {
-  const [udaFinale, setUdaFinale] = useState("");
-  const [selectedTraguardi, setSelectedTraguardi] = useState<string[]>([]);
   const [titolo, setTitolo] = useState("");
-  const [classe, setClasse] = useState("1");
-  const [ore, setOre] = useState("10");
   const [materie, setMaterie] = useState<string[]>([]);
+  const [periodo, setPeriodo] = useState("Primo Quadr.");
+  const [ore, setOre] = useState("10");
+  const [scuola, setScuola] = useState("secondaria");
+  const [classe, setClasse] = useState("1");
+  const [descrizioneLibera, setDescrizioneLibera] = useState("");
+  const [selectedTraguardi, setSelectedTraguardi] = useState<string[]>([]);
+  const [udaFinale, setUdaFinale] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const listaMaterie = ["Italiano", "Storia", "Geografia", "Matematica", "Scienze", "Inglese", "Tecnologia", "Arte", "Musica", "Ed. Fisica", "Ed. Civica"];
+
+  // Funzione per estrarre i blocchi di testo [TAG] generati dall'AI
+  const estrai = (testo: string, tag: string) => {
+    const regex = new RegExp(`\\[${tag}\\]\\s*([\\s\\S]*?)(?=\\s*\\[|$)`);
+    const match = testo.match(regex);
+    return match ? match[1].trim() : "---";
+  };
 
   const scaricaWordCompilato = () => {
     if (!udaFinale) return;
 
+    // 1. Righe Piano di Lavoro (Tabella Fasi)
+    const pianoTesto = estrai(udaFinale, "PIANO_LAVORO");
+    const righePiano = pianoTesto.split("\n").filter(r => r.includes("|")).map(r => {
+      const c = r.split("|").map(cell => cell.trim());
+      return `<tr><td>${c[0]||""}</td><td>${c[1]||""}</td><td>${c[2]||""}</td><td>${c[3]||""}</td><td>${c[4]||""}</td><td>${c[5]||""}</td></tr>`;
+    }).join("");
+
+    // 2. Righe Griglia Competenze (Mappatura Traguardi -> Livelli)
     const righeGriglia = selectedTraguardi.map(t => {
       const id = t.split(":")[0].trim();
-      const livelli = getGrigliaLivelli(id);
-      
-      let compNome = "---";
-      let tragTesto = t;
-      [...CURRICOLO_BURSI.primaria, ...CURRICOLO_BURSI.secondaria].forEach(s => {
-        const trovato = s.traguardi.find(tr => tr.id === id);
-        if (trovato) { compNome = s.competenza; tragTesto = trovato.testo; }
-      });
-
+      const livelli = DATABASE_GRIGLIE[id] || { iniziale: "Solo se guidato", base: "In autonomia", intermedio: "Adeguato", avanzato: "Piena padronanza" };
       return `
         <tr>
-          <td style="border:1px solid black; padding:5px; font-size:9pt;">${compNome}</td>
-          <td style="border:1px solid black; padding:5px; font-weight:bold;">${tragTesto}</td>
-          <td style="border:1px solid black; padding:5px;">${livelli.iniziale}</td>
-          <td style="border:1px solid black; padding:5px;">${livelli.base}</td>
-          <td style="border:1px solid black; padding:5px;">${livelli.intermedio}</td>
-          <td style="border:1px solid black; padding:5px;">${livelli.avanzato}</td>
+          <td style="font-weight:bold">${t}</td>
+          <td>${livelli.iniziale}</td>
+          <td>${livelli.base}</td>
+          <td>${livelli.intermedio}</td>
+          <td>${livelli.avanzato}</td>
         </tr>`;
     }).join("");
 
     const blobContent = `
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-      <head><meta charset='utf-8'></head>
+      <head><meta charset='utf-8'><style>
+        table { border-collapse: collapse; width: 100%; font-family: Calibri; margin-bottom: 20px; }
+        td, th { border: 1px solid black; padding: 8px; font-size: 10pt; }
+        .header { background-color: #D9D9D9; text-align: center; font-weight: bold; font-size: 14pt; padding: 10px; }
+      </style></head>
       <body>
-        <h1>UDA: ${titolo}</h1>
-        <p>Classe: ${classe} - Ore previste: ${ore}</p>
-        <table style="border-collapse:collapse; width:100%;">
-          <tr style="background-color:#DDD;">
-            <th>Competenza</th><th>Traguardo</th><th>Iniziale</th><th>Base</th><th>Intermedio</th><th>Avanzato</th>
-          </tr>
+        <div class="header">MODELLO UDA - IC BURSI</div>
+        <table>
+          <tr><td><b>Titolo:</b> ${titolo}</td><td><b>Classe:</b> ${classe}ª ${scuola}</td></tr>
+          <tr><td><b>Materie:</b> ${materie.join(", ")}</td><td><b>Ore:</b> ${ore}</td></tr>
+        </table>
+        <h3>PIANO DI LAVORO</h3>
+        <table>
+          <tr style="background:#EEE"><th>Fase</th><th>Materie</th><th>Descrizione</th><th>Metodi</th><th>Valutazione</th><th>Ore</th></tr>
+          ${righePiano}
+        </table>
+        <br clear=all style='page-break-before:always'>
+        <div class="header">GRIGLIA DI VALUTAZIONE</div>
+        <table>
+          <tr style="background:#EEE"><th>Traguardo</th><th>Iniziale</th><th>Base</th><th>Intermedio</th><th>Avanzato</th></tr>
           ${righeGriglia}
         </table>
-        <br/>
-        <div style="white-space: pre-wrap;">${udaFinale}</div>
       </body></html>`;
 
     const blob = new Blob(['\ufeff', blobContent], { type: 'application/msword' });
-    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = url;
-    link.download = `UDA_${titolo.replace(/\s+/g, '_')}.doc`;
+    link.href = URL.createObjectURL(blob);
+    link.download = `UDA_${titolo}.doc`;
     link.click();
   };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Generatore UDA IC Bursi</h1>
-      <div className="grid gap-4 mb-6">
-        <input type="text" placeholder="Titolo UDA" className="border p-2" onChange={(e)=>setTitolo(e.target.value)} />
-        <div className="flex gap-4">
-          <input type="number" placeholder="Ore" className="border p-2 w-20" onChange={(e)=>setOre(e.target.value)} />
-          <select className="border p-2" onChange={(e)=>setClasse(e.target.value)}>
-            <option value="1">Classe 1ª</option>
-            <option value="2">Classe 2ª</option>
-            <option value="3">Classe 3ª</option>
-          </select>
-        </div>
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <h1 className="text-2xl font-bold border-b pb-2">Generatore UDA Integrale</h1>
+      
+      {/* Input Sezione */}
+      <div className="grid grid-cols-2 gap-4">
+        <input placeholder="Titolo UDA" className="border p-2" onChange={e => setTitolo(e.target.value)} />
+        <input type="number" placeholder="Ore" className="border p-2" onChange={e => setOre(e.target.value)} />
       </div>
 
-      {/* Qui andrebbe la logica per selezionare i traguardi e generare l'UDA */}
-      
-      <div className="mt-8 flex gap-4">
+      {/* Selezione Materie */}
+      <div className="flex flex-wrap gap-2">
+        {listaMaterie.map(m => (
+          <button 
+            key={m} 
+            onClick={() => setMaterie(prev => prev.includes(m) ? prev.filter(x => x!==m) : [...prev, m])}
+            className={`px-3 py-1 rounded text-sm ${materie.includes(m) ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+          >
+            {m}
+          </button>
+        ))}
+      </div>
+
+      <textarea 
+        placeholder="Note aggiuntive per l'AI..." 
+        className="w-full border p-2 h-24"
+        onChange={e => setDescrizioneLibera(e.target.value)}
+      />
+
+      <div className="flex gap-4">
         <button 
-          onClick={() => setUdaFinale("[CONTESTO] Esempio...\n[CONSEGNA] Crea un prodotto...\n[TRAGUARDI] TS1, TS34")}
-          className="bg-green-600 text-white px-4 py-2 rounded"
+          onClick={() => setUdaFinale("[PIANO_LAVORO]\n1 | Italiano | Lettura | Frontale | Osservazione | 2\n[CONTESTO]\nEsempio contesto...")}
+          className="bg-black text-white px-6 py-2 rounded"
         >
-          1. Simula Generazione
+          Simula Generazione
         </button>
         
         <button 
           onClick={scaricaWordCompilato}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
+          disabled={!udaFinale}
+          className="bg-green-700 text-white px-6 py-2 rounded disabled:opacity-50"
         >
-          2. Scarica Word Completo
+          Scarica Word Progettazione
         </button>
       </div>
     </div>
@@ -386,149 +418,149 @@ const sviluppaUdaCompleta = async (propostaScelta: string) => {
     }
   };
 // --- FUNZIONE PASSO 3: DOWNLOAD MODELLO WORD INTEGRALE ---
-  const scaricaWordCompilato = () => {
-    if (!udaFinale) return;
+const scaricaWordCompilato = () => {
+  if (!udaFinale) {
+    alert("Genera prima l'UDA!");
+    return;
+  }
 
-    // 1. Funzione per trovare la Competenza e il Testo partendo dall'ID (es. TS1)
-    const trovaDatiCurricolo = (idTraguardo: string) => {
-      const sezioni = [...CURRICOLO_BURSI.primaria, ...CURRICOLO_BURSI.secondaria];
-      for (const sezione of sezioni) {
-        const traguardoTrovato = sezione.traguardi.find(t => t.id === idTraguardo);
-        if (traguardoTrovato) {
-          return {
-            competenza: sezione.competenza,
-            testo: traguardoTrovato.testo
-          };
-        }
+  // 1. Funzione interna per trovare Competenza e Testo partendo dall'ID (es. TS1)
+  const trovaDatiCurricolo = (idTraguardo) => {
+    // Uniamo i due array per la ricerca universale
+    const sezioni = [...CURRICOLO_BURSI.primaria, ...CURRICOLO_BURSI.secondaria];
+    for (const sezione of sezioni) {
+      const traguardoTrovato = sezione.traguardi.find(t => t.id === idTraguardo);
+      if (traguardoTrovato) {
+        return {
+          competenza: sezione.competenza,
+          testo: traguardoTrovato.testo
+        };
       }
-      return null;
-    };
+    }
+    return null;
+  };
 
-    // 2. Estrazione dati dai tag generati dall'AI
-    const estrai = (tag: string) => {
-      const regex = new RegExp(`\\[${tag}\\]\\s*([\\s\\S]*?)(?=\\s*\\[|$)`);
-      const match = udaFinale.match(regex);
-      return match ? match[1].trim() : "---";
-    };
+  // 2. Estrazione dati dai tag [TAG] generati dall'AI
+  const estrai = (tag) => {
+    const regex = new RegExp(`\\[${tag}\\]\\s*([\\s\\S]*?)(?=\\s*\\[|$)`);
+    const match = udaFinale.match(regex);
+    return match ? match[1].trim() : "---";
+  };
 
-    const contesto = estrai("CONTESTO");
-    const consegna = estrai("CONSEGNA");
-    const prodotto = estrai("PRODOTTO");
-    const pianoTesto = estrai("PIANO_LAVORO");
-    const traguardiDallAI = estrai("TRAGUARDI");
+  const contesto = estrai("CONTESTO");
+  const consegna = estrai("CONSEGNA");
+  const prodotto = estrai("PRODOTTO");
+  const pianoTesto = estrai("PIANO_LAVORO");
+  const traguardiDallAI = estrai("TRAGUARDI");
 
-    // 3. Trasformazione Piano di Lavoro in tabella HTML
-    const righePianoLavoro = pianoTesto.split("\n")
-      .filter(riga => riga.includes("|"))
-      .map(riga => {
-        const celle = riga.split("|").map(c => {
-          const valore = c.includes(":") ? c.split(":")[1] : c;
-          return valore ? valore.trim() : "---";
-        });
-        return `
-          <tr>
-            <td style="text-align:center">${celle[0] || ""}</td>
-            <td>${celle[1] || ""}</td>
-            <td>${celle[2] || ""}</td>
-            <td>${celle[3] || ""}</td>
-            <td>${celle[4] || ""}</td>
-            <td style="text-align:center">${celle[5] || ""}</td>
-          </tr>`;
-      }).join("");
-
-    // 4. GENERAZIONE GRIGLIA COMPETENZE (Esattamente come il file Excel)
-    const righeGrigliaCompetenze = selectedTraguardi.map(t => {
-      const id = t.split(":")[0].trim();
-      const datiBursi = trovaDatiCurricolo(id);
-      
-      // Recupera i testi dei livelli dal DATABASE_GRIGLIE (quello basato sul tuo CSV)
-      const livelli = DATABASE_GRIGLIE[id] || { 
-        iniziale: "Svolge compiti semplici solo se guidato.", 
-        base: "Svolge compiti semplici in autonomia.", 
-        intermedio: "Svolge compiti complessi in modo adeguato.", 
-        avanzato: "Svolge compiti complessi con padronanza." 
-      };
-
+  // 3. Trasformazione Piano di Lavoro in tabella HTML
+  const righePianoLavoro = pianoTesto.split("\n")
+    .filter(riga => riga.includes("|"))
+    .map(riga => {
+      const celle = riga.split("|").map(c => c.trim());
       return `
         <tr>
-          <td style="width:20%; background-color:#F9F9F9; font-size:9pt;">${datiBursi?.competenza || "---"}</td>
-          <td style="width:20%; font-weight:bold;">${datiBursi?.testo || t}</td>
-          <td>${livelli.iniziale || livelli.iniz}</td>
-          <td>${livelli.base}</td>
-          <td>${livelli.intermedio || livelli.int}</td>
-          <td>${livelli.avanzato || livelli.avanz}</td>
+          <td style="text-align:center; border:1px solid black;">${celle[0] || ""}</td>
+          <td style="border:1px solid black;">${celle[1] || ""}</td>
+          <td style="border:1px solid black;">${celle[2] || ""}</td>
+          <td style="border:1px solid black;">${celle[3] || ""}</td>
+          <td style="border:1px solid black;">${celle[4] || ""}</td>
+          <td style="text-align:center; border:1px solid black;">${celle[5] || ""}</td>
         </tr>`;
     }).join("");
 
-    const headerHtml = `
-      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-      <head><meta charset='utf-8'><style>
-        table { border-collapse: collapse; width: 100%; font-family: "Calibri", sans-serif; margin-bottom: 15px; table-layout: fixed; }
-        td, th { border: 1px solid black; padding: 6px; font-size: 10pt; vertical-align: top; word-wrap: break-word; }
-        .bg-grey { background-color: #E7E6E6; font-weight: bold; text-align: center; }
-        .header-title { text-align: center; font-weight: bold; font-size: 16pt; text-transform: uppercase; border: 2px solid black; padding: 10px; background-color: #D9D9D9; }
-      </style></head><body>
-    `;
+  // 4. Generazione Griglia Competenze con mappatura DATABASE_GRIGLIE
+  const righeGrigliaCompetenze = selectedTraguardi.map(t => {
+    // Gestiamo sia che selectedTraguardi sia ["TS1: testo..."] sia solo ["TS1"]
+    const id = t.includes(":") ? t.split(":")[0].trim() : t.trim();
+    const datiBursi = trovaDatiCurricolo(id);
+    
+    // Fallback se l'ID non è presente nel DATABASE_GRIGLIE
+    const livelli = DATABASE_GRIGLIE[id] || { 
+      iniziale: "Svolge compiti semplici solo se guidato.", 
+      base: "Svolge compiti semplici in autonomia.", 
+      intermedio: "Svolge compiti complessi in modo adeguato.", 
+      avanzato: "Svolge compiti complessi con padronanza." 
+    };
 
-    const corpoHtml = `
-      <div class="header-title">MODELLO UDA<br/>SECONDARIA DI I GRADO “F. BURSI”</div>
+    return `
+      <tr>
+        <td style="border:1px solid black; background-color:#F9F9F9; font-size:9pt;">${datiBursi?.competenza || "---"}</td>
+        <td style="border:1px solid black; font-weight:bold;">${datiBursi?.testo || t}</td>
+        <td style="border:1px solid black;">${livelli.iniziale || livelli.iniz}</td>
+        <td style="border:1px solid black;">${livelli.base}</td>
+        <td style="border:1px solid black;">${livelli.intermedio || livelli.int}</td>
+        <td style="border:1px solid black;">${livelli.avanzato || livelli.avanz}</td>
+      </tr>`;
+  }).join("");
+
+  // 5. Costruzione HTML finale
+  const htmlCompleto = `
+    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+    <head><meta charset='utf-8'>
+    <style>
+      body { font-family: "Calibri", sans-serif; }
+      table { border-collapse: collapse; width: 100%; margin-bottom: 15px; }
+      td, th { border: 1px solid black; padding: 6px; font-size: 10pt; vertical-align: top; }
+      .bg-grey { background-color: #E7E6E6; font-weight: bold; text-align: center; }
+      .header-title { text-align: center; font-weight: bold; font-size: 16pt; text-transform: uppercase; border: 2px solid black; padding: 10px; background-color: #D9D9D9; }
+    </style>
+    </head>
+    <body>
+      <div class="header-title">MODELLO UDA<br/>IC "F. BURSI"</div>
       <br/>
-      
       <table>
-        <tr class="bg-grey"><td>Destinatari</td><td>Ore</td><td>Anno Scolastico</td><td>Quadrimestre</td><td>Materie</td></tr>
-        <tr><td>Classe ${classe}ª</td><td>${ore} ore</td><td>2025/2026</td><td>${periodo || "---"}</td><td>${materie.join(", ")}</td></tr>
+        <tr class="bg-grey"><td>Destinatari</td><td>Ore</td><td>Periodo</td><td>Materie</td></tr>
+        <tr><td>Classe ${classe}ª ${scuola}</td><td>${ore} ore</td><td>${periodo || "---"}</td><td>${Array.isArray(materie) ? materie.join(", ") : materie}</td></tr>
       </table>
 
       <table>
         <tr><td class="bg-grey" style="width:25%">Titolo UDA</td><td><b>${titolo}</b></td></tr>
-        <tr><td class="bg-grey">Contestualizzazione situazione/problema</td><td>${contesto}</td></tr>
-        <tr><td class="bg-grey">Consegna situazione/problema</td><td>${consegna}</td></tr>
+        <tr><td class="bg-grey">Situazione Problema</td><td>${contesto}</td></tr>
+        <tr><td class="bg-grey">Consegna</td><td>${consegna}</td></tr>
       </table>
 
-      <table>
-        <tr><td class="bg-grey" style="width:25%">Traguardi di competenza</td>
-        <td>${traguardiDallAI !== "---" ? traguardiDallAI.replace(/\n/g, "<br/>") : selectedTraguardi.join("<br/>")}</td></tr>
-      </table>
-
-      <table>
-        <tr class="bg-grey"><td style="width:25%">Strumenti di valutazione</td><td>Prerequisiti</td><td>Soft Skills</td><td>Prodotto</td><td>Competenze</td></tr>
-        <tr><td class="bg-grey">Griglie previste</td><td>griglia prerequisiti</td><td>griglia processo</td><td>griglia prodotto/contenuto</td><td>griglia competenze</td></tr>
-      </table>
-
-      <br/>
-      <p style="font-weight:bold; font-size:12pt;">PIANO DI LAVORO:</p>
+      <p style="font-weight:bold;">PIANO DI LAVORO:</p>
       <table>
         <tr class="bg-grey">
           <td style="width:8%">Fase</td><td style="width:15%">Materie</td><td style="width:30%">Descrizione</td><td style="width:20%">Metodi</td><td style="width:17%">Valutazione</td><td style="width:10%">Ore</td>
         </tr>
         ${righePianoLavoro}
       </table>
+      
       <p><b>PRODOTTO FINALE:</b> ${prodotto}</p>
 
       <br clear=all style='mso-special-character:line-break;page-break-before:always'>
+      
       <div class="header-title" style="font-size:14pt;">GRIGLIA DI VALUTAZIONE DELLE COMPETENZE</div>
       <br/>
       <table>
         <tr class="bg-grey">
-          <td>COMPETENZA</td>
-          <td>EVIDENZE / TRAGUARDI</td>
-          <td>INIZIALE (4-5)</td>
-          <td>BASE (6)</td>
-          <td>INTERMEDIO (7-8)</td>
-          <td>AVANZATO (9-10)</td>
+          <td>COMPETENZA</td><td>EVIDENZE</td><td>INIZIALE</td><td>BASE</td><td>INTERMEDIO</td><td>AVANZATO</td>
         </tr>
         ${righeGrigliaCompetenze}
       </table>
-    </body></html>
-    `;
+    </body>
+    </html>`;
 
-    const blobContent = headerHtml + corpoHtml;
-    const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(blobContent);
-    const link = document.createElement("a");
-    link.href = source;
-    link.download = `UDA_BURSI_${classe}_${titolo.replace(/\s+/g, '_')}.doc`;
-    link.click();
-  };
+  // 6. Download sicuro tramite Blob (gestisce file grandi e caratteri speciali)
+  const blob = new Blob(['\ufeff', htmlCompleto], {
+    type: 'application/msword'
+  });
+  
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `UDA_BURSI_${titolo.replace(/\s+/g, '_')}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  
+  // Pulizia memoria
+  setTimeout(() => {
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, 0);
+};
   return (
     <main className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900">
       <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl p-8 border border-slate-100">
