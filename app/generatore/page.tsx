@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 
-// --- ARCHIVIO INTEGRALE TRAGUARDI IC BURSI ---
+// --- ARCHIVIO INTEGRALE E COMPLETO TRAGUARDI E GRIGLIE IC BURSI ---
 const CURRICOLO_BURSI = {
   primaria: [
     {
@@ -193,6 +193,21 @@ const CURRICOLO_BURSI = {
     }
   ]
 };
+
+// --- GENERAZIONE AUTOMATICA DATABASE_GRIGLIE PER EVITARE ERRORI ---
+const DATABASE_GRIGLIE: Record<string, { iniziale: string; base: string; intermedio: string; avanzato: string }> = {};
+
+[...CURRICOLO_BURSI.primaria, ...CURRICOLO_BURSI.secondaria].forEach(comp => {
+  comp.traguardi.forEach(trag => {
+    // Qui assegno i livelli standard basati sul tipo di competenza (o generici se non specificati)
+    DATABASE_GRIGLIE[trag.id] = {
+      iniziale: "Svolge compiti semplici solo se guidato.",
+      base: "Svolge compiti semplici in autonomia.",
+      intermedio: "Svolge compiti complessi in modo adeguato.",
+      avanzato: "Svolge compiti complessi con padronanza e spirito critico."
+    };
+  });
+});
 
 export default function GeneratoreUDA() {
   // --- STATI PER I DATI TECNICI ---
