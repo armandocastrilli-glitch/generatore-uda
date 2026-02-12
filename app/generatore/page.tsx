@@ -258,7 +258,7 @@ export default function GeneratoreUDA() {
   // 2. FUNZIONE PER SVILUPPARE L'UDA COMPLETA
 const sviluppaUdaCompleta = async (propostaScelta: string) => {
     if (selectedTraguardi.length === 0) {
-      alert("Seleziona i traguardi: sono vincolanti per la generazione!");
+      alert("Seleziona i traguardi dal curricolo!");
       return;
     }
     setLoading(true);
@@ -274,15 +274,28 @@ const sviluppaUdaCompleta = async (propostaScelta: string) => {
           periodo, 
           ore, 
           propostaScelta, 
-          // ISTRUZIONE VINCOLANTE:
+          // PROTOCOLLO DI TARATURA RIGIDA:
           istruzioniSviluppo: `
-            PROGETTAZIONE RIGIDA SU TRAGUARDI SELEZIONATI:
-            L'UDA deve essere costruita esclusivamente sui seguenti traguardi dell'IC Bursi: ${selectedTraguardi.join(", ")}.
-            REGOLE OBBLIGATORIE:
-            1. Ogni attività didattica deve essere finalizzata al raggiungimento di almeno uno dei traguardi scelti.
-            2. Il 'Prodotto Finale' deve dimostrare l'acquisizione delle competenze legate a questi specifici traguardi.
-            3. Nella tabella di valutazione, usa solo i criteri definiti nel Curricolo per questi codici.
-            4. Non inserire obiettivi generici o non selezionati dal docente.
+            PROTOCOLLO DI GENERAZIONE VINCOLATA - IC BURSI
+            L'UDA deve essere tarata ESCLUSIVAMENTE sui seguenti parametri reali:
+
+            1. TARATURA TARGET: Sei in una classe ${classe}ª della Scuola ${scuola}. 
+               - Il linguaggio, le metodologie e la complessità delle attività devono essere rigorosamente adatti a bambini/ragazzi di questa età.
+            
+            2. VINCOLO TEMPORALE: Hai a disposizione un totale di ${ore} ore. 
+               - La sequenza didattica deve essere realistica: non proporre attività che richiedono mesi se l'UDA è di 10 ore.
+            
+            3. VINCOLO DISCIPLINARE: Coinvolgi solo ed esclusivamente queste materie: ${materie.join(", ")}.
+            
+            4. VINCOLO CURRICOLARE (ASSOLUTO): 
+               - Usa SOLO questi traguardi: ${selectedTraguardi.join(" | ")}.
+               - NON inventare competenze chiave o obiettivi extra. 
+               - Ogni ora delle ${ore} previste deve servire a sviluppare i traguardi selezionati.
+
+            5. INTEGRAZIONE NOTE DOCENTE: 
+               - Inserisci fedelmente queste indicazioni: ${descrizioneLibera}.
+
+            6. OUTPUT: Non scrivere introduzioni discorsive. Vai dritto alla compilazione dei campi dell'UDA rispettando i dati sopra citati.
           `,
           traguardiScelti: selectedTraguardi, 
           tipoRichiesta: "UDA_COMPLETA" 
