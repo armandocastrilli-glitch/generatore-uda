@@ -258,10 +258,14 @@ export default function GeneratoreUDA() {
   // 2. FUNZIONE PER SVILUPPARE L'UDA COMPLETA
 const sviluppaUdaCompleta = async (propostaScelta: string) => {
     if (selectedTraguardi.length === 0) {
-      alert("Seleziona i traguardi dal curricolo!");
+      alert("Seleziona i traguardi dal curricolo! Sono vincoli assoluti.");
       return;
     }
     setLoading(true);
+    
+    // Capisce se stiamo compilando direttamente o sviluppando una proposta dell'AI
+    const isCompilazioneDiretta = propostaScelta.includes("COMPILAZIONE_DIRETTA");
+
     try {
       const res = await fetch("/api/generatore-uda", {
         method: "POST",
@@ -274,31 +278,24 @@ const sviluppaUdaCompleta = async (propostaScelta: string) => {
           periodo, 
           ore, 
           propostaScelta, 
-          // PROTOCOLLO DI TARATURA RIGIDA:
+          traguardiScelti: selectedTraguardi, 
+          tipoRichiesta: "UDA_COMPLETA",
+          // PROTOCOLLO DI TARATURA RIGIDA (Unificato e Potenziato)
           istruzioniSviluppo: `
             PROTOCOLLO DI GENERAZIONE VINCOLATA - IC BURSI
-            L'UDA deve essere tarata ESCLUSIVAMENTE sui seguenti parametri reali:
+            ${isCompilazioneDiretta 
+              ? "AGISCI COME COMPILATORE TECNICO: Trasforma le note del docente in un'UDA formattata senza aggiungere creatività esterna." 
+              : `SVILUPPA L'IDEA SCELTA: "${propostaScelta}"`
+            }
 
-            1. TARATURA TARGET: Sei in una classe ${classe}ª della Scuola ${scuola}. 
-               - Il linguaggio, le metodologie e la complessità delle attività devono essere rigorosamente adatti a bambini/ragazzi di questa età.
-            
-            2. VINCOLO TEMPORALE: Hai a disposizione un totale di ${ore} ore. 
-               - La sequenza didattica deve essere realistica: non proporre attività che richiedono mesi se l'UDA è di 10 ore.
-            
-            3. VINCOLO DISCIPLINARE: Coinvolgi solo ed esclusivamente queste materie: ${materie.join(", ")}.
-            
-            4. VINCOLO CURRICOLARE (ASSOLUTO): 
-               - Usa SOLO questi traguardi: ${selectedTraguardi.join(" | ")}.
-               - NON inventare competenze chiave o obiettivi extra. 
-               - Ogni ora delle ${ore} previste deve servire a sviluppare i traguardi selezionati.
-
-            5. INTEGRAZIONE NOTE DOCENTE: 
-               - Inserisci fedelmente queste indicazioni: ${descrizioneLibera}.
-
-            6. OUTPUT: Non scrivere introduzioni discorsive. Vai dritto alla compilazione dei campi dell'UDA rispettando i dati sopra citati.
+            PARAMETRI REALI DA RISPETTARE (NON DEROGABILI):
+            1. CLASSE E ORDINE: Classe ${classe}ª, Scuola ${scuola}. Linguaggio e attività devono essere tarati esattamente su questa età.
+            2. TEMPI: Massimo ${ore} ore totali. La sequenza didattica deve essere realistica per questo monte ore.
+            3. MATERIE: ${materie.join(", ")}.
+            4. TRAGUARDI (ASSOLUTO): Usa SOLO ${selectedTraguardi.join(" | ")}. Divieto di inventare competenze chiave o obiettivi extra.
+            5. NOTE DOCENTE: Integra fedelmente queste indicazioni: ${descrizioneLibera}.
+            6. FORMATO: Output diretto, professionale, in Markdown, senza introduzioni discorsive.
           `,
-          traguardiScelti: selectedTraguardi, 
-          tipoRichiesta: "UDA_COMPLETA" 
         }),
       });
       const data = await res.json();
@@ -309,7 +306,6 @@ const sviluppaUdaCompleta = async (propostaScelta: string) => {
       setLoading(false); 
     }
   };
-
   return (
     <main className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900">
       <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl p-8 border border-slate-100">
@@ -409,7 +405,7 @@ const sviluppaUdaCompleta = async (propostaScelta: string) => {
           )}
         </div>
 
-        {/* INPUT LIBERO */}
+       {/* INPUT LIBERO */}
         <div className="mb-8">
           <label className="block text-sm font-bold text-slate-700 mb-2 uppercase">Note o Idee particolari (Opzionale)</label>
           <textarea 
@@ -420,13 +416,47 @@ const sviluppaUdaCompleta = async (propostaScelta: string) => {
           />
         </div>
 
-        <button 
-          onClick={handleGeneraProposte} 
-          disabled={loading || !titolo} 
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-blue-200 transition-all uppercase tracking-widest"
-        >
-          {loading ? "Inviando richiesta..." : "Fase 1: Genera 3 Proposte"}
-        </button>
+        {/* SEZIONE AZIONI DOPPIA: SCELTA DELLA MODALITÀ */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+          
+          {/* TASTO A: MODALITÀ CREATIVA (GENERA 3 IDEE) */}
+          <button 
+            onClick={handleGeneraProposte} 
+            disabled={loading || !titolo}
+            className="flex flex-col items-center justify-center p-6 bg-white border-2 border-blue-600 rounded-3xl hover:bg-blue-50 transition-all disabled:opacity-50 shadow-sm group"
+          >
+            <span className="text-blue-600 font-black uppercase tracking-widest text-sm group-hover:scale-105 transition-transform">
+              💡 Fammi delle proposte
+            </span>
+            <span className="text-[10px] text-slate-400 mt-1 italic font-sans normal-case">
+              L'AI ti suggerisce 3 bozze tra cui scegliere
+            </span>
+          </button>
+
+          {/* TASTO B: MODALITÀ TECNICA (COMPILAZIONE DIRETTA) */}
+          <button 
+            onClick={() => sviluppaUdaCompleta("COMPILAZIONE_DIRETTA: Basata rigorosamente su note docente.")} 
+            disabled={loading || !titolo || selectedTraguardi.length === 0}
+            className="flex flex-col items-center justify-center p-6 bg-blue-600 border-2 border-blue-600 rounded-3xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50 group"
+          >
+            <span className="text-white font-black uppercase tracking-widest text-sm group-hover:scale-105 transition-transform">
+              📝 Compila la mia UDA
+            </span>
+            <span className="text-blue-100 text-[10px] mt-1 italic font-sans normal-case">
+              Usa le mie note e i traguardi scelti
+            </span>
+          </button>
+
+        </div>
+
+        {/* FEEDBACK VISIVO DURANTE IL CARICAMENTO */}
+        {loading && (
+          <div className="mt-6 text-center animate-pulse">
+            <p className="text-blue-600 font-bold uppercase text-[10px] tracking-widest">
+              Elaborazione in corso secondo il Curricolo IC Bursi...
+            </p>
+          </div>
+        )}
 
         {/* BOX PROPOSTE GENERATE */}
         {proposte.length > 0 && !udaFinale && (
