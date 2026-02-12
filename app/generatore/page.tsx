@@ -1,8 +1,56 @@
 "use client";
 import { useState } from "react";
 
+// --- ARCHIVIO INTEGRALE TRAGUARDI IC BURSI (Integrazione Nuova) ---
+const CURRICOLO_BURSI = {
+  primaria: [
+    {
+      competenza: "1. Alfabetica Funzionale",
+      traguardi: [
+        { id: "TP1", testo: "Comunicare con chiarezza ed efficacia: esprimere oralmente idee e domande." },
+        { id: "TP2a", testo: "Decodificare e comprendere messaggi chiave (orale e non verbale)." },
+        { id: "TP2b", testo: "Decodificare e comprendere messaggi chiave (scritto)." },
+        { id: "TP5", testo: "Riassumere il contenuto di testi scritti individuando i punti principali." },
+        { id: "TP6a", testo: "Produrre brevi testi con correttezza linguistica." }
+      ]
+    },
+    {
+      competenza: "3. Matematica, Scienze, Tecnologia",
+      traguardi: [
+        { id: "TP12", testo: "Classificare oggetti in base a criteri definiti." },
+        { id: "TP13", testo: "Produrre diverse soluzioni per un problema." },
+        { id: "TP16", testo: "Formulare ipotesi semplici basate sull'osservazione." }
+      ]
+    },
+    {
+      competenza: "6. Cittadinanza",
+      traguardi: [
+        { id: "TP30", testo: "Riconoscere i diritti e i doveri fondamentali del cittadino." },
+        { id: "TP34", testo: "Agire in modo responsabile per la tutela dell'ambiente." }
+      ]
+    }
+  ],
+  secondaria: [
+    {
+      competenza: "1. Alfabetica Funzionale",
+      traguardi: [
+        { id: "TS1", testo: "Comunicare in modo efficace e consapevole organizzando il vocabolario." },
+        { id: "TS2b", testo: "Interpretare il significato nel contesto scritto cogliendo sfumature." },
+        { id: "TS5", testo: "Produrre testi scritti complessi e appropriati al contesto." }
+      ]
+    },
+    {
+      competenza: "4. Digitale",
+      traguardi: [
+        { id: "TS26", testo: "Gestire in modo autonomo e critico le informazioni digitali." },
+        { id: "TS28", testo: "Creare e modificare contenuti digitali multimediali complessi." }
+      ]
+    }
+  ]
+};
+
 export default function GeneratoreUDA() {
-  // --- STATI PER I DATI TECNICI ---
+  // --- STATI PER I DATI TECNICI (Originali) ---
   const [titolo, setTitolo] = useState("");
   const [materie, setMaterie] = useState<string[]>([]);
   const [periodo, setPeriodo] = useState("");
@@ -11,7 +59,10 @@ export default function GeneratoreUDA() {
   const [classe, setClasse] = useState("1");
   const [descrizioneLibera, setDescrizioneLibera] = useState("");
 
-  // --- STATI PER IL MOTORE AI ---
+  // --- NUOVO STATO PER I TRAGUARDI SELEZIONATI ---
+  const [selectedTraguardi, setSelectedTraguardi] = useState<string[]>([]);
+
+  // --- STATI PER IL MOTORE AI (Originali) ---
   const [loading, setLoading] = useState(false);
   const [proposte, setProposte] = useState<string[]>([]);
   const [udaFinale, setUdaFinale] = useState("");
@@ -25,7 +76,15 @@ export default function GeneratoreUDA() {
     setMaterie(prev => prev.includes(m) ? prev.filter(item => item !== m) : [...prev, m]);
   };
 
-  // 1. FUNZIONE PER GENERARE LE 3 IDEE INIZIALI
+  // --- NUOVA FUNZIONE PER GESTIRE I TRAGUARDI ---
+  const toggleTraguardo = (t: {id: string, testo: string}) => {
+    const stringaTraguardo = `${t.id}: ${t.testo}`;
+    setSelectedTraguardi(prev => 
+      prev.includes(stringaTraguardo) ? prev.filter(item => item !== stringaTraguardo) : [...prev, stringaTraguardo]
+    );
+  };
+
+  // 1. FUNZIONE PER GENERARE LE 3 IDEE INIZIALI (Originale)
   const handleGeneraProposte = async () => {
     if (!titolo || materie.length === 0) {
       alert("Inserisci almeno il titolo e una materia!");
@@ -52,7 +111,7 @@ export default function GeneratoreUDA() {
     }
   };
 
-  // 2. FUNZIONE PER SVILUPPARE L'UDA COMPLETA DALL'IDEA SCELTA
+  // 2. FUNZIONE PER SVILUPPARE L'UDA COMPLETA (Integrata con traguardiScelti)
   const sviluppaUdaCompleta = async (propostaScelta: string) => {
     setLoading(true);
     try {
@@ -62,6 +121,7 @@ export default function GeneratoreUDA() {
         body: JSON.stringify({ 
           titolo, scuola, classe, materie, periodo, ore,
           propostaScelta, 
+          traguardiScelti: selectedTraguardi, // <--- Integrazione nuova
           tipoRichiesta: "UDA_COMPLETA" 
         }),
       });
@@ -87,7 +147,7 @@ export default function GeneratoreUDA() {
             <label className="block text-sm font-bold text-slate-700 mb-2 uppercase">Ordine di Scuola</label>
             <select 
               value={scuola} 
-              onChange={(e) => {setScuola(e.target.value); setClasse("1");}} 
+              onChange={(e) => {setScuola(e.target.value); setClasse("1"); setSelectedTraguardi([]);}} 
               className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="primaria">Scuola Primaria</option>
@@ -138,6 +198,39 @@ export default function GeneratoreUDA() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* --- NUOVA SEZIONE: SELEZIONE TRAGUARDI DAL CURRICOLO (Integrazione) --- */}
+        <div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+          <label className="block text-sm font-bold text-slate-700 mb-4 uppercase">
+            Seleziona Traguardi dal Curricolo (IC Bursi):
+          </label>
+          <div className="space-y-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+            {(scuola === "primaria" ? CURRICOLO_BURSI.primaria : CURRICOLO_BURSI.secondaria).map((comp, i) => (
+              <div key={i}>
+                <p className="text-[10px] font-black text-slate-400 uppercase mb-2 border-b">{comp.competenza}</p>
+                <div className="grid grid-cols-1 gap-2">
+                  {comp.traguardi.map(t => (
+                    <label key={t.id} className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selectedTraguardi.includes(`${t.id}: ${t.testo}`) ? "bg-white border-blue-500 ring-1 ring-blue-500" : "bg-white/50 border-slate-100 hover:border-slate-300"}`}>
+                      <input 
+                        type="checkbox" 
+                        checked={selectedTraguardi.includes(`${t.id}: ${t.testo}`)}
+                        onChange={() => toggleTraguardo(t)}
+                        className="mt-1 w-4 h-4 text-blue-600 rounded"
+                      />
+                      <div className="text-xs">
+                        <span className="font-bold text-blue-600 mr-2">{t.id}</span>
+                        <span className="text-slate-700">{t.testo}</span>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          {selectedTraguardi.length > 0 && (
+            <p className="mt-2 text-[10px] font-bold text-blue-600 uppercase">Traguardi selezionati: {selectedTraguardi.length}</p>
+          )}
         </div>
 
         {/* INPUT LIBERO */}
