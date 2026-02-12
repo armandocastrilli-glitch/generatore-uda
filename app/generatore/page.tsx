@@ -306,6 +306,74 @@ const sviluppaUdaCompleta = async (propostaScelta: string) => {
       setLoading(false); 
     }
   };
+  // --- FUNZIONE PASSO 3: DOWNLOAD MODELLO WORD ---
+  const scaricaWordCompilato = () => {
+    if (!udaFinale) return;
+
+    // Funzione interna per estrarre il testo tra i marcatori che l'AI genererà nel backend
+    const estrai = (tag: string) => {
+      const regex = new RegExp(`\\[${tag}\\]\\s*([\\s\\S]*?)(?=\\s*\\[|$)`);
+      const match = udaFinale.match(regex);
+      return match ? match[1].trim() : "---";
+    };
+
+    const contesto = estrai("CONTESTO");
+    const consegna = estrai("CONSEGNA");
+    const prodotto = estrai("PRODOTTO");
+    const pianoLavoro = estrai("PIANO_LAVORO");
+
+    const headerHtml = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+      <head><meta charset='utf-8'><style>
+        table { border-collapse: collapse; width: 100%; font-family: "Calibri", sans-serif; margin-bottom: 10px; }
+        td, th { border: 1px solid black; padding: 5px; font-size: 10pt; vertical-align: top; }
+        .bg-grey { background-color: #f2f2f2; font-weight: bold; }
+        .header-title { text-align: center; font-weight: bold; font-size: 14pt; text-transform: uppercase; }
+      </style></head><body>
+    `;
+
+    const corpoHtml = `
+      <div class="header-title">MODELLO UDA - SECONDARIA DI I GRADO “F. BURSI”</div>
+      <br/>
+      <table>
+        <tr class="bg-grey">
+          <td>Destinatari</td><td>Ore complessive</td><td>Anno Scolastico</td><td>Quadrimestre</td><td>Materie</td>
+        </tr>
+        <tr>
+          <td>Classe ${classe}ª</td><td>${ore} ore</td><td>2025/2026</td><td>${periodo}</td><td>${materie.join(", ")}</td>
+        </tr>
+      </table>
+
+      <table>
+        <tr><td class="bg-grey" style="width:25%">Titolo UDA</td><td>${titolo}</td></tr>
+        <tr><td class="bg-grey">Contestualizzazione</td><td>${contesto}</td></tr>
+        <tr><td class="bg-grey">Consegna</td><td>${consegna}</td></tr>
+      </table>
+
+      <table>
+        <tr class="bg-grey">
+          <td style="width:25%">Strumenti di valutazione</td><td>Prerequisiti</td><td>Soft Skills</td><td>Prodotto</td><td>Competenze</td>
+        </tr>
+        <tr>
+          <td class="bg-grey">Griglie previste</td><td>Griglia prerequisiti</td><td>Griglia processo</td><td>Griglia prodotto</td><td>Griglia competenze</td>
+        </tr>
+      </table>
+
+      <p><b>PIANO DI LAVORO:</b></p>
+      <div style="font-family: Calibri; font-size: 10pt; white-space: pre-wrap;">${pianoLavoro}</div>
+      
+      <p><b>PRODOTTO FINALE:</b> ${prodotto}</p>
+      
+      <p><b>TRAGUARDI SELEZIONATI:</b><br/>${selectedTraguardi.join("<br/>")}</p>
+    </body></html>
+    `;
+
+    const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(headerHtml + corpoHtml);
+    const link = document.createElement("a");
+    link.href = source;
+    link.download = `UDA_BURSI_${titolo.replace(/\s+/g, '_')}.doc`;
+    link.click();
+  };
   return (
     <main className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900">
       <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl p-8 border border-slate-100">
@@ -478,18 +546,31 @@ const sviluppaUdaCompleta = async (propostaScelta: string) => {
           </div>
         )}
 
-        {/* AREA VISUALIZZAZIONE UDA COMPLETA */}
+       {/* AREA VISUALIZZAZIONE UDA COMPLETA */}
         {udaFinale && (
           <div className="mt-12 p-8 border-t-4 border-green-500 bg-slate-50 rounded-2xl animate-in zoom-in duration-300">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
               <h2 className="text-2xl font-black text-slate-800 uppercase">UDA Sviluppata</h2>
-              <button 
-                onClick={() => setUdaFinale("")} 
-                className="text-blue-600 font-bold text-sm underline"
-              >
-                Torna alle proposte
-              </button>
+              
+              <div className="flex gap-4">
+                {/* TASTO PER SCARICARE IL WORD */}
+                <button 
+                  onClick={scaricaWordCompilato}
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl text-xs font-black uppercase shadow-lg transition-all hover:scale-105 active:scale-95"
+                >
+                  💾 Scarica Word
+                </button>
+
+                <button 
+                  onClick={() => setUdaFinale("")} 
+                  className="text-blue-600 font-bold text-sm underline hover:text-blue-800"
+                >
+                  Torna alle proposte
+                </button>
+              </div>
             </div>
+            
+            {/* Anteprima a video del testo generato */}
             <div className="whitespace-pre-wrap text-slate-700 leading-relaxed text-sm bg-white p-6 rounded-xl border border-slate-200 shadow-inner">
               {udaFinale}
             </div>
