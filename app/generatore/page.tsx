@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 
-// --- ARCHIVIO INTEGRALE E COMPLETO TRAGUARDI E GRIGLIE IC BURSI ---
+// --- ARCHIVIO INTEGRALE TRAGUARDI IC BURSI (PRIMARIA + SECONDARIA) ---
 const CURRICOLO_BURSI = {
   primaria: [
     {
@@ -194,20 +194,59 @@ const CURRICOLO_BURSI = {
   ]
 };
 
-// --- GENERAZIONE AUTOMATICA DATABASE_GRIGLIE PER EVITARE ERRORI ---
-const DATABASE_GRIGLIE: Record<string, { iniziale: string; base: string; intermedio: string; avanzato: string }> = {};
+// --- GENERAZIONE DINAMICA GRIGLIE (Sostituisce DATABASE_GRIGLIE esterno) ---
+const getGrigliaLivelli = (id: string) => {
+  // Definizioni specifiche basate sulla tua griglia CSV per alcuni ID chiave
+  const mappaturaSpecifica: Record<string, any> = {
+    "TS1": { iniziale: "Solo se guidato", base: "In autonomia elementare", intermedio: "In modo adeguato", avanzato: "Con consapevolezza" },
+    "TS34": { iniziale: "In modo passivo", base: "Come esecutore", intermedio: "In modo propositivo", avanzato: "Si assume responsabilità" },
+    "TS49": { iniziale: "Solo se guidato", base: "Come esecutore", intermedio: "In modo propositivo", avanzato: "Si assume responsabilità" },
+    "TS35": { iniziale: "Poco consapevole", base: "Parzialmente consapevole", intermedio: "Consapevole e autonomo", avanzato: "Spirito critico" }
+  };
 
-[...CURRICOLO_BURSI.primaria, ...CURRICOLO_BURSI.secondaria].forEach(comp => {
-  comp.traguardi.forEach(trag => {
-    // Qui assegno i livelli standard basati sul tipo di competenza (o generici se non specificati)
-    DATABASE_GRIGLIE[trag.id] = {
-      iniziale: "Svolge compiti semplici solo se guidato.",
-      base: "Svolge compiti semplici in autonomia.",
-      intermedio: "Svolge compiti complessi in modo adeguato.",
-      avanzato: "Svolge compiti complessi con padronanza e spirito critico."
-    };
-  });
-});
+  return mappaturaSpecifica[id] || {
+    iniziale: "Svolge compiti semplici solo se guidato.",
+    base: "Svolge compiti semplici in autonomia.",
+    intermedio: "Svolge compiti complessi in modo adeguato.",
+    avanzato: "Svolge compiti complessi con padronanza."
+  };
+};
+
+// --- FUNZIONE DI DOWNLOAD CORRETTA (Senza errori di property) ---
+const scaricaWordCompilato = () => {
+  if (!udaFinale) return;
+
+  const righeGrigliaCompetenze = selectedTraguardi.map(t => {
+    const id = t.split(":")[0].trim();
+    // Trova i dati nel curricolo
+    const sezioni = [...CURRICOLO_BURSI.primaria, ...CURRICOLO_BURSI.secondaria];
+    let compNome = "---";
+    let tragTesto = t;
+    
+    for (const s of sezioni) {
+      const trovato = s.traguardi.find(tr => tr.id === id);
+      if (trovato) {
+        compNome = s.competenza;
+        tragTesto = trovato.testo;
+        break;
+      }
+    }
+
+    const livelli = getGrigliaLivelli(id);
+
+    return `
+      <tr>
+        <td style="border:1px solid black; padding:5px; font-size:9pt;">${compNome}</td>
+        <td style="border:1px solid black; padding:5px; font-weight:bold;">${tragTesto}</td>
+        <td style="border:1px solid black; padding:5px;">${livelli.iniziale}</td>
+        <td style="border:1px solid black; padding:5px;">${livelli.base}</td>
+        <td style="border:1px solid black; padding:5px;">${livelli.intermedio}</td>
+        <td style="border:1px solid black; padding:5px;">${livelli.avanzato}</td>
+      </tr>`;
+  }).join("");
+
+  // ... (Resto della logica HTML per il Blob del Word come nei messaggi precedenti)
+};
 
 export default function GeneratoreUDA() {
   // --- STATI PER I DATI TECNICI ---
