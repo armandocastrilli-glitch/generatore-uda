@@ -147,10 +147,6 @@ const CURRICOLO_BURSI = {
   ]
 };
 
-"use client";
-
-import React, { useState } from 'react';
-
 // --- DATABASE GRIGLIE (Basato sui tuoi dati CSV) ---
 const DATABASE_GRIGLIE: Record<string, any> = {
   "TS1": { iniziale: "solo se guidato", base: "in modo autonomo ma elementare", intermedio: "in modo adeguato", avanzato: "con piena consapevolezza" },
