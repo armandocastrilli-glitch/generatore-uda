@@ -5,8 +5,9 @@ export async function POST(req: Request) {
     const { titolo, classe, periodo, ore, materie } = await req.json();
     const apiKey = "AIzaSyDZzelj-ifA85l_C53YVXgHYiLHW3o8NjY"; 
 
+    // CAMBIAMO DA v1beta A v1 (VERSIONE STABILE)
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -23,13 +24,9 @@ export async function POST(req: Request) {
     const data = await response.json();
 
     if (data.error) {
-      console.error("DETTAGLIO ERRORE GOOGLE:", data.error);
+      // Questo log apparirà su Vercel e ci dirà il motivo REALE (es. PERMISSION_DENIED)
+      console.error("ERRORE CRITICO GOOGLE:", data.error.message);
       return NextResponse.json({ error: data.error.message }, { status: 500 });
-    }
-
-    if (!data.candidates) {
-      console.error("RISPOSTA VUOTA DA GOOGLE:", data);
-      return NextResponse.json({ error: "Risposta vuota" }, { status: 500 });
     }
 
     return NextResponse.json({ uda: data.candidates[0].content.parts[0].text });
