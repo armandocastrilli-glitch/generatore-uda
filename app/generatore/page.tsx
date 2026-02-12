@@ -256,26 +256,46 @@ export default function GeneratoreUDA() {
   };
 
   // 2. FUNZIONE PER SVILUPPARE L'UDA COMPLETA
-  const sviluppaUdaCompleta = async (propostaScelta: string) => {
+const sviluppaUdaCompleta = async (propostaScelta: string) => {
+    if (selectedTraguardi.length === 0) {
+      alert("Seleziona i traguardi: sono vincolanti per la generazione!");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/generatore-uda", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
-          titolo, scuola, classe, materie, periodo, ore,
+          titolo, 
+          scuola, 
+          classe, 
+          materie, 
+          periodo, 
+          ore, 
           propostaScelta, 
-          traguardiScelti: selectedTraguardi,
+          // ISTRUZIONE VINCOLANTE:
+          istruzioniSviluppo: `
+            PROGETTAZIONE RIGIDA SU TRAGUARDI SELEZIONATI:
+            L'UDA deve essere costruita esclusivamente sui seguenti traguardi dell'IC Bursi: ${selectedTraguardi.join(", ")}.
+            REGOLE OBBLIGATORIE:
+            1. Ogni attività didattica deve essere finalizzata al raggiungimento di almeno uno dei traguardi scelti.
+            2. Il 'Prodotto Finale' deve dimostrare l'acquisizione delle competenze legate a questi specifici traguardi.
+            3. Nella tabella di valutazione, usa solo i criteri definiti nel Curricolo per questi codici.
+            4. Non inserire obiettivi generici o non selezionati dal docente.
+          `,
+          traguardiScelti: selectedTraguardi, 
           tipoRichiesta: "UDA_COMPLETA" 
         }),
       });
       const data = await res.json();
       if (data.uda) setUdaFinale(data.uda);
-    } catch (err) {
-      alert("Errore nello sviluppo dell'UDA completa.");
-    } finally {
-      setLoading(false);
+    } catch (err) { 
+      alert("Errore nello sviluppo dell'UDA."); 
+    } finally { 
+      setLoading(false); 
     }
+  };
   };
 
   return (
