@@ -6,23 +6,23 @@ export async function POST(req: Request) {
     const apiKey = process.env.GROQ_API_KEY;
 
     if (!apiKey) {
-      return NextResponse.json({ error: "Chiave API non configurata" }, { status: 500 });
+      return NextResponse.json({ error: "Chiave API non configurata su Vercel" }, { status: 500 });
     }
 
-    // Qui costruiamo il prompt specifico per le 3 proposte
-    const prompt = `Sei un esperto pedagogista per l'IC "F. Bursi" di Fiorano Modenese. 
-    Il docente insegna alla scuola ${scuola} ed è in una classe ${classe}ª.
+    const prompt = `Sei un esperto pedagogista dell'IC "F. Bursi". 
+    Genera 3 proposte sintetiche diverse per un'UDA di scuola ${scuola}, classe ${classe}ª.
     Argomento: ${titolo}.
-    Note del docente: ${descrizioneLibera}.
+    Input docente: ${descrizioneLibera}.
 
-    GENERA 3 PROPOSTE SINTETICHE diverse per un'UDA. 
-    Ogni proposta deve essere breve e includere:
-    1. Un titolo accattivante.
-    2. L'approccio metodologico (es. Tinkering, Debate, Outdoor Education).
-    3. Una sintesi dell'attività principale.
+    Per ogni proposta scrivi:
+    1. Titolo creativo.
+    2. Metodologia (es. flipped classroom, outdoor learning).
+    3. Breve descrizione dell'attività.
 
-    IMPORTANTE: Rispondi ESCLUSIVAMENTE con un array JSON di stringhe, senza testo prima o dopo.
-    Esempio formato: ["Proposta 1...", "Proposta 2...", "Proposta 3..."]`;
+    REGOLE DI RISPOSTA:
+    - Rispondi SOLO con un oggetto JSON.
+    - L'oggetto deve avere una chiave "proposte" che contiene un array di 3 stringhe.
+    - Ogni stringa deve contenere il testo della proposta ben spaziato.`;
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -33,27 +33,25 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: "Sei un assistente che parla solo tramite array JSON." },
+          { role: "system", content: "Sei un assistente che genera esclusivamente output in formato JSON strutturato." },
           { role: "user", content: prompt }
         ],
-        temperature: 0.7,
-        // Chiediamo a Groq di forzare il formato JSON
+        temperature: 0.8,
         response_format: { type: "json_object" }
       })
     });
 
     const data = await response.json();
     
-    // Groq con response_format restituisce un oggetto, dobbiamo estrarre le proposte
+    // Parsiamo il contenuto JSON ricevuto dall'AI
     const content = JSON.parse(data.choices[0].message.content);
     
-    // Gestiamo sia se l'AI restituisce { "proposte": [...] } sia se restituisce l'array diretto
-    const elencoProposte = Array.isArray(content) ? content : content.proposte;
-
-    return NextResponse.json({ proposte: elencoProposte });
+    return NextResponse.json({ 
+      proposte: content.proposte || [] 
+    });
 
   } catch (error: any) {
-    console.error("Errore API:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("ERRORE SERVER:", error.message);
+    return NextResponse.json({ error: "Errore interno al server" }, { status: 500 });
   }
 }
