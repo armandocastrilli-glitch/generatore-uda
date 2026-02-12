@@ -5,9 +5,9 @@ export async function POST(req: Request) {
     const { titolo, classe, periodo, ore, materie } = await req.json();
     const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
 
-    // TORNIAMO ALLA v1beta MA CON IL MODELLO FLASH-8B (PIÙ COMPATIBILE)
+    // USIAMO IL MODELLO 1.0 PRO - IL PIÙ COMPATIBILE AL MONDO
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -24,14 +24,18 @@ export async function POST(req: Request) {
     const data = await response.json();
 
     if (data.error) {
-      // Se fallisce ancora, proviamo a usare il modello gemini-pro (senza 1.5)
-      throw new Error(`${data.error.status}: ${data.error.message}`);
+      // Se fallisce anche questo, il problema è la chiave API non attiva
+      throw new Error(`Errore Google: ${data.error.message}`);
     }
 
     const text = data.candidates[0].content.parts[0].text;
     return NextResponse.json({ uda: text });
 
   } catch (error: any) {
-    return NextResponse.json({ error: "Errore Google", dettaglio: error.message }, { status: 500 });
+    console.error("ERRORE:", error.message);
+    return NextResponse.json({ 
+      error: "Errore di generazione", 
+      dettaglio: error.message 
+    }, { status: 500 });
   }
 }
