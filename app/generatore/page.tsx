@@ -1,7 +1,8 @@
 "use client";
-import { useState } from "react";
 
-// --- ARCHIVIO INTEGRALE TRAGUARDI IC BURSI (PRIMARIA + SECONDARIA) ---
+import React, { useState } from 'react';
+
+// --- 1. ARCHIVIO INTEGRALE TRAGUARDI IC BURSI ---
 const CURRICOLO_BURSI = {
   primaria: [
     {
@@ -167,7 +168,7 @@ const CURRICOLO_BURSI = {
         { id: "TS45", testo: "Promuovere lo sviluppo sostenibile e l'economia circolare." },
         { id: "TS46", testo: "Partecipare al dibattito democratico rispettando le opinioni altrui." },
         { id: "TS47", testo: "Applicare i principi della sicurezza stradale e del primo soccorso." },
-        { id: "TS48", testo: "Riconoscere l'importanza del volontariato e dell'impegno civile." }
+        { id: "TS48", testo: "Riconoscere l'importance del volontariato e dell'impegno civile." }
       ]
     },
     {
@@ -194,43 +195,72 @@ const CURRICOLO_BURSI = {
   ]
 };
 
-// --- GENERAZIONE DINAMICA GRIGLIE (Sostituisce DATABASE_GRIGLIE esterno) ---
+// --- 2. LOGICA GRIGLIE ---
 const getGrigliaLivelli = (id: string) => {
-  // Definizioni specifiche basate sulla tua griglia CSV per alcuni ID chiave
-  const mappaturaSpecifica: Record<string, any> = {
-    "TS1": { iniziale: "Solo se guidato", base: "In autonomia elementare", intermedio: "In modo adeguato", avanzato: "Con consapevolezza" },
-    "TS34": { iniziale: "In modo passivo", base: "Come esecutore", intermedio: "In modo propositivo", avanzato: "Si assume responsabilità" },
-    "TS49": { iniziale: "Solo se guidato", base: "Come esecutore", intermedio: "In modo propositivo", avanzato: "Si assume responsabilità" },
-    "TS35": { iniziale: "Poco consapevole", base: "Parzialmente consapevole", intermedio: "Consapevole e autonomo", avanzato: "Spirito critico" }
-  };
-
-  return mappaturaSpecifica[id] || {
-    iniziale: "Svolge compiti semplici solo se guidato.",
-    base: "Svolge compiti semplici in autonomia.",
-    intermedio: "Svolge compiti complessi in modo adeguato.",
-    avanzato: "Svolge compiti complessi con padronanza."
-  };
+    const mappatura: Record<string, any> = {
+        "TS1": { iniziale: "solo se guidato", base: "in modo autonomo ma elementare", intermedio: "in modo adeguato", avanzato: "con piena consapevolezza" },
+        "TS2a": { iniziale: "in modo approssimativo", base: "in modo elementare", intermedio: "in modo adeguato", avanzato: "in modo ricco ed efficace" },
+        "TS34": { iniziale: "in modo passivo", base: "con compiti solo da esecutore", intermedio: "agisce in modo propositivo", avanzato: "si assume responsabilità" },
+        "TS49": { iniziale: "solo se guidato", base: "con compiti solo da esecutore", intermedio: "agisce in modo propositivo", avanzato: "si assume responsabilità" }
+    };
+    return mappatura[id] || {
+        iniziale: "Solo se guidato", base: "In autonomia", intermedio: "Adeguato", avanzato: "Piena padronanza"
+    };
 };
 
-// --- FUNZIONE DI DOWNLOAD CORRETTA (Senza errori di property) ---
-const scaricaWordCompilato = () => {
-  if (!udaFinale) return;
+export default function GeneratoreUDA() {
+    // STATI DEL COMPONENTE
+    const [udaFinale, setUdaFinale] = useState("");
+    const [selectedTraguardi, setSelectedTraguardi] = useState<string[]>([]);
+    const [titolo, setTitolo] = useState("");
+    const [classe, setClasse] = useState("1");
+    const [ore, setOre] = useState("10");
+    const [materie, setMaterie] = useState<string[]>([]);
+    const [periodo, setPeriodo] = useState("");
 
-  const righeGrigliaCompetenze = selectedTraguardi.map(t => {
-    const id = t.split(":")[0].trim();
-    // Trova i dati nel curricolo
-    const sezioni = [...CURRICOLO_BURSI.primaria, ...CURRICOLO_BURSI.secondaria];
-    let compNome = "---";
-    let tragTesto = t;
-    
-    for (const s of sezioni) {
-      const trovato = s.traguardi.find(tr => tr.id === id);
-      if (trovato) {
-        compNome = s.competenza;
-        tragTesto = trovato.testo;
-        break;
-      }
-    }
+    const scaricaWordCompilato = () => {
+        if (!udaFinale) {
+            alert("Genera prima l'UDA!");
+            return;
+        }
+
+        const righeGriglia = selectedTraguardi.map(t => {
+            const id = t.split(":")[0].trim();
+            const livelli = getGrigliaLivelli(id);
+            return `<tr><td>${id}</td><td>${t}</td><td>${livelli.iniziale}</td><td>${livelli.base}</td><td>${livelli.intermedio}</td><td>${livelli.avanzato}</td></tr>`;
+        }).join("");
+
+        const content = `
+            <html><body>
+                <h1>UDA: ${titolo}</h1>
+                <p>Classe: ${classe} - Ore: ${ore}</p>
+                <h2>Griglia di Valutazione</h2>
+                <table border="1">${righeGriglia}</table>
+                <div>${udaFinale.replace(/\n/g, "<br/>")}</div>
+            </body></html>
+        `;
+
+        const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `UDA_${titolo}.doc`;
+        link.click();
+    };
+
+    return (
+        <div className="p-8">
+            <h1 className="text-2xl font-bold mb-4">Generatore UDA IC Bursi</h1>
+            {/* Qui andrà il tuo form e la logica di generazione */}
+            <button 
+                onClick={scaricaWordCompilato}
+                className="bg-blue-600 text-white p-2 rounded"
+            >
+                Scarica Word
+            </button>
+        </div>
+    );
+}
 
     const livelli = getGrigliaLivelli(id);
 
