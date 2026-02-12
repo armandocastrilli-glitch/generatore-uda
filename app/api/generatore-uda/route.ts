@@ -20,34 +20,47 @@ export async function POST(req: Request) {
 
     let prompt = "";
 
-    if (tipoRichiesta === "UDA_COMPLETA") {
-      // 2. PROMPT PER UDA COMPLETA CON VINCOLI ASSOLUTI
-      prompt = `
-        SVILUPPA UN'UDA COMPLETA SEGUENDO RIGIDAMENTE QUESTI PARAMETRI:
+if (tipoRichiesta === "UDA_COMPLETA") {
+  const isCompilazioneDiretta = propostaScelta.includes("COMPILAZIONE_DIRETTA");
 
-        DATI TECNICI:
-        - Titolo: ${titolo}
-        - Ordine: ${scuola}
-        - Classe: ${classe}ª
-        - Materie coinvolte: ${materie?.join(", ")}
-        - Ore totali previste: ${ore} ore (L'UDA deve essere fattibile in questo tempo!)
-        - Periodo: ${periodo}
+  prompt = `
+    Sei un esperto pedagogista dell'IC Bursi. 
+    DEVI COMPILARE LE SEZIONI DEL MODELLO UDA SECONDARIA SEGUENDO QUESTO SCHEMA FISSO.
+    
+    DATI DI INPUT:
+    - Titolo: ${titolo}
+    - Classe: ${classe}ª
+    - Materie: ${materie?.join(", ")}
+    - Ore: ${ore}
+    - Note Docente: ${descrizioneLibera}
+    - Traguardi Selezionati: ${traguardiScelti?.join(" | ")}
 
-        TRAGUARDI DEL CURRICOLO IC BURSI SELEZIONATI (VINCOLO ASSOLUTO):
-        ${traguardiScelti?.join("\n") || "Nessun traguardo selezionato."}
+    REGOLE DI SCRITTURA:
+    1. Usa i titoli delle sezioni esattamente come indicati sotto.
+    2. Per ogni sezione, scrivi un contenuto coerente con l'età degli alunni (Classe ${classe}ª).
+    3. Il "Piano di Lavoro" deve dividere le ${ore} ore totali in fasi realistiche.
 
-        IDEA DI BASE DA SVILUPPARE:
-        "${propostaScelta}"
+    STRUTTURA DA SEGUIRE (FORMATTA COSÌ):
 
-        ${istruzioniSviluppo} 
+    ### SEZIONE 1: DATI IDENTIFICATIVI
+    - Destinatari: Classe ${classe}ª
+    - Ore complessive: ${ore}
+    - Quadrimestre: ${periodo}
+    - Materie: ${materie?.join(", ")}
 
-        ISTRUZIONI DI FORMATTAZIONE:
-        - Usa Markdown (Titoli #, ## e grassetti).
-        - Tabella delle Fasi: Dividi le ${ore} ore in fasi realistiche.
-        - Sezione Valutazione: Coerente con i traguardi indicati.
-        - DIVIETO: Non aggiungere Competenze o Traguardi diversi da quelli forniti sopra.
-      `;
-    } else {
+    ### SEZIONE 2: PROGETTAZIONE
+    - Titolo UDA: ${titolo}
+    - Contestualizzazione situazione/problema: [Scrivi qui il contesto]
+    - Consegna situazione/problema: [Scrivi qui cosa devono fare gli studenti]
+    - Competenze chiave e Traguardi: ${traguardiScelti?.join("\n")}
+
+    ### SEZIONE 3: VALUTAZIONE
+    - Strumenti: Griglia prerequisiti, griglia processo (Soft Skills), griglia prodotto, griglia competenze.
+
+    ### SEZIONE 4: PIANO DI LAVORO
+    [Genera una lista di fasi: Fase 1, Fase 2, ecc. Per ogni fase indica: Materia, Descrizione attività, Metodologie, Valutazione, Ore]
+  `;
+} else {
       // 3. PROMPT PER LE 3 PROPOSTE (FASE 1)
       prompt = `Genera 3 proposte sintetiche per un'UDA scolastica (IC Bursi).
       Dati: Titolo "${titolo}", Scuola ${scuola}, Classe ${classe}ª, Materie: ${materie?.join(", ")}.
