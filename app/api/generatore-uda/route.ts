@@ -5,16 +5,16 @@ export async function POST(req: Request) {
     const { titolo, classe, periodo, ore, materie } = await req.json();
     const apiKey = "AIzaSyDZzelj-ifA85l_C53YVXgHYiLHW3o8NjY"; 
 
-    // CAMBIAMO DA v1beta A v1 (VERSIONE STABILE)
+    // VERSION v1beta + MODELLO -latest (La combinazione più potente e compatibile)
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `Genera UDA: ${titolo}, Classe: ${classe}, Materie: ${materie.join(", ")}.`
+              text: `Sei un esperto di didattica. Genera un'UDA per l'IC "F. Bursi". Titolo: ${titolo}, Classe: ${classe}, Materie: ${materie.join(", ")}.`
             }]
           }]
         })
@@ -24,8 +24,7 @@ export async function POST(req: Request) {
     const data = await response.json();
 
     if (data.error) {
-      // Questo log apparirà su Vercel e ci dirà il motivo REALE (es. PERMISSION_DENIED)
-      console.error("ERRORE CRITICO GOOGLE:", data.error.message);
+      console.error("ERRORE DIRETTO:", data.error.message);
       return NextResponse.json({ error: data.error.message }, { status: 500 });
     }
 
