@@ -306,11 +306,11 @@ const sviluppaUdaCompleta = async (propostaScelta: string) => {
       setLoading(false); 
     }
   };
-  // --- FUNZIONE PASSO 3: DOWNLOAD MODELLO WORD ---
+ // --- FUNZIONE PASSO 3: DOWNLOAD MODELLO WORD (VERSIONE FINALE) ---
   const scaricaWordCompilato = () => {
     if (!udaFinale) return;
 
-    // Funzione interna per estrarre il testo tra i marcatori che l'AI genererà nel backend
+    // 1. Funzione di estrazione con "pulizia" dei tag
     const estrai = (tag: string) => {
       const regex = new RegExp(`\\[${tag}\\]\\s*([\\s\\S]*?)(?=\\s*\\[|$)`);
       const match = udaFinale.match(regex);
@@ -320,34 +320,64 @@ const sviluppaUdaCompleta = async (propostaScelta: string) => {
     const contesto = estrai("CONTESTO");
     const consegna = estrai("CONSEGNA");
     const prodotto = estrai("PRODOTTO");
-    const pianoLavoro = estrai("PIANO_LAVORO");
+    const pianoTesto = estrai("PIANO_LAVORO");
+    const traguardi = estrai("TRAGUARDI");
+
+    // 2. Logica Avanzata: Trasforma le righe dell'AI in vere righe di tabella HTML
+    // Si aspetta il formato: FASE: 1 | MATERIE: ... | DESCRIZIONE: ... | METODI: ... | VALUTAZIONE: ... | ORE: ...
+    const righePianoLavoro = pianoTesto.split("\n")
+      .filter(riga => riga.includes("|")) // Prende solo le righe che hanno il separatore
+      .map(riga => {
+        const celle = riga.split("|").map(c => {
+          const valore = c.includes(":") ? c.split(":")[1] : c;
+          return valore ? valore.trim() : "---";
+        });
+        
+        // Se l'AI ha generato correttamente le 6 colonne
+        return `
+          <tr>
+            <td style="text-align:center">${celle[0] || ""}</td>
+            <td>${celle[1] || ""}</td>
+            <td>${celle[2] || ""}</td>
+            <td>${celle[3] || ""}</td>
+            <td>${celle[4] || ""}</td>
+            <td style="text-align:center">${celle[5] || ""}</td>
+          </tr>`;
+      }).join("");
 
     const headerHtml = `
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
       <head><meta charset='utf-8'><style>
-        table { border-collapse: collapse; width: 100%; font-family: "Calibri", sans-serif; margin-bottom: 10px; }
-        td, th { border: 1px solid black; padding: 5px; font-size: 10pt; vertical-align: top; }
-        .bg-grey { background-color: #f2f2f2; font-weight: bold; }
-        .header-title { text-align: center; font-weight: bold; font-size: 14pt; text-transform: uppercase; }
+        table { border-collapse: collapse; width: 100%; font-family: "Calibri", sans-serif; margin-bottom: 15px; table-layout: fixed; }
+        td, th { border: 1px solid black; padding: 6px; font-size: 10pt; vertical-align: top; word-wrap: break-word; }
+        .bg-grey { background-color: #E7E6E6; font-weight: bold; }
+        .header-title { text-align: center; font-weight: bold; font-size: 16pt; text-transform: uppercase; border: 2px solid black; padding: 10px; background-color: #D9D9D9; }
+        .section-title { font-weight: bold; background-color: #F2F2F2; }
       </style></head><body>
     `;
 
     const corpoHtml = `
-      <div class="header-title">MODELLO UDA - SECONDARIA DI I GRADO “F. BURSI”</div>
+      <div class="header-title">MODELLO UDA<br/>SECONDARIA DI I GRADO “F. BURSI”</div>
       <br/>
+      
       <table>
         <tr class="bg-grey">
-          <td>Destinatari</td><td>Ore complessive</td><td>Anno Scolastico</td><td>Quadrimestre</td><td>Materie</td>
+          <td>Destinatari</td><td>Ore complessive</td><td>Anno Scolastico</td><td>Quadrimestre</td><td>Materie coinvolte</td>
         </tr>
         <tr>
-          <td>Classe ${classe}ª</td><td>${ore} ore</td><td>2025/2026</td><td>${periodo}</td><td>${materie.join(", ")}</td>
+          <td>Classe ${classe}ª</td><td>${ore} ore</td><td>2025/2026</td><td>${periodo || "---"}</td><td>${materie.join(", ")}</td>
         </tr>
       </table>
 
       <table>
-        <tr><td class="bg-grey" style="width:25%">Titolo UDA</td><td>${titolo}</td></tr>
-        <tr><td class="bg-grey">Contestualizzazione</td><td>${contesto}</td></tr>
-        <tr><td class="bg-grey">Consegna</td><td>${consegna}</td></tr>
+        <tr><td class="bg-grey" style="width:25%">Titolo UDA</td><td><b>${titolo}</b></td></tr>
+        <tr><td class="bg-grey">Contestualizzazione situazione/problema</td><td>${contesto}</td></tr>
+        <tr><td class="bg-grey">Consegna situazione/problema</td><td>${consegna}</td></tr>
+      </table>
+
+      <table>
+        <tr><td class="bg-grey" style="width:25%">Traguardi di competenza</td>
+        <td>${traguardi !== "---" ? traguardi.replace(/\n/g, "<br/>") : selectedTraguardi.join("<br/>")}</td></tr>
       </table>
 
       <table>
@@ -355,23 +385,40 @@ const sviluppaUdaCompleta = async (propostaScelta: string) => {
           <td style="width:25%">Strumenti di valutazione</td><td>Prerequisiti</td><td>Soft Skills</td><td>Prodotto</td><td>Competenze</td>
         </tr>
         <tr>
-          <td class="bg-grey">Griglie previste</td><td>Griglia prerequisiti</td><td>Griglia processo</td><td>Griglia prodotto</td><td>Griglia competenze</td>
+          <td class="bg-grey">Griglie previste</td>
+          <td>griglia prerequisiti</td>
+          <td>griglia processo</td>
+          <td>griglia prodotto/contenuto</td>
+          <td>griglia competenze</td>
         </tr>
       </table>
 
-      <p><b>PIANO DI LAVORO:</b></p>
-      <div style="font-family: Calibri; font-size: 10pt; white-space: pre-wrap;">${pianoLavoro}</div>
+      <br/>
+      <p style="font-weight:bold; font-size:12pt;">PIANO DI LAVORO (Sviluppo delle fasi):</p>
       
+      <table>
+        <tr class="bg-grey" style="text-align:center">
+          <td style="width:8%">Fase</td>
+          <td style="width:15%">Materie</td>
+          <td style="width:30%">Descrizione</td>
+          <td style="width:20%">Metodologie e strumenti</td>
+          <td style="width:17%">Valutazione/Osservazione</td>
+          <td style="width:10%">Ore</td>
+        </tr>
+        ${righePianoLavoro || '<tr><td colspan="6" style="text-align:center italic">Piano di lavoro descritto nel corpo del testo o formato non rilevato</td></tr>'}
+      </table>
+
       <p><b>PRODOTTO FINALE:</b> ${prodotto}</p>
-      
-      <p><b>TRAGUARDI SELEZIONATI:</b><br/>${selectedTraguardi.join("<br/>")}</p>
+
     </body></html>
     `;
 
-    const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(headerHtml + corpoHtml);
+    // 3. Generazione e Download del file
+    const blobContent = headerHtml + corpoHtml;
+    const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(blobContent);
     const link = document.createElement("a");
     link.href = source;
-    link.download = `UDA_BURSI_${titolo.replace(/\s+/g, '_')}.doc`;
+    link.download = `UDA_BURSI_${classe}_${titolo.replace(/\s+/g, '_')}.doc`;
     link.click();
   };
   return (
