@@ -4,8 +4,8 @@ export async function POST(req: Request) {
   try {
     const { titolo, classe, periodo, ore, materie } = await req.json();
     
-    // INCOLLA QUI LA TUA CHIAVE GROQ
-    const GROQ_API_KEY = "IL_TUO_CODICE_GSK_QUI"; 
+    // LA TUA CHIAVE GROQ INSERITA DIRETTAMENTE
+    const GROQ_API_KEY = "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"; 
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -14,16 +14,15 @@ export async function POST(req: Request) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        // Llama 3.3 70B è un modello incredibile per la didattica
         model: "llama-3.3-70b-versatile",
         messages: [
           {
             role: "system",
-            content: "Sei un esperto di didattica italiana. Genera Unità di Apprendimento (UDA) professionali, formattate in Markdown, complete di competenze, fasi e griglia di valutazione."
+            content: "Sei un esperto di didattica italiana. Genera Unità di Apprendimento (UDA) professionali per la scuola media, formattate in Markdown, complete di competenze, fasi e griglia di valutazione."
           },
           {
             role: "user",
-            content: `Genera un'UDA per l'IC "F. Bursi". 
+            content: `Genera un'UDA per l'IC "F. Bursi" di Fiorano Modenese. 
                       Titolo: ${titolo}
                       Classe: ${classe}
                       Materie: ${materie.join(", ")}
@@ -42,7 +41,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: data.error.message }, { status: 500 });
     }
 
-    // Estraiamo il testo della risposta
     const udaProdotta = data.choices[0].message.content;
 
     return NextResponse.json({ uda: udaProdotta });
