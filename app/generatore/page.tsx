@@ -373,8 +373,11 @@ export default function GeneratoreUDA() {
       </style></head><body>
     `;
 
-    const corpoHtml = `
-      <div class="header-title">MODELLO UDA<br/>SECONDARIA DI I GRADO “F. BURSI”</div>
+const corpoHtml = `
+      <div class="header-title">
+        MODELLO UDA<br/>
+        ${scuola === "primaria" ? "PRIMARIA" : "SECONDARIA DI I GRADO"} “F. BURSI”
+      </div>
       <br/>
       
       <table>
@@ -392,16 +395,16 @@ export default function GeneratoreUDA() {
         <tr><td class="bg-grey">Consegna situazione/problema</td><td>${consegna}</td></tr>
       </table>
 
-     <p style="font-weight:bold; margin-top:10px; font-size:11pt;">TRAGUARDI DI COMPETENZA:</p>
+      <p style="font-weight:bold; margin-top:10px; font-size:11pt;">TRAGUARDI DI COMPETENZA:</p>
       <table>
         <tr class="bg-grey" style="text-align:center;">
           <td style="width:30%">Competenza di riferimento</td>
           <td style="width:70%">Traguardi / Evidenze (Curricolo IC Bursi)</td>
         </tr>
         ${selectedTraguardi.map(t => {
-          // Isola l'ID (es. TS1)
+          // Isola l'ID (es. TS1 o TP1)
           const id = t.includes(":") ? t.split(":")[0].trim() : t.trim();
-          // Cerca la competenza nel database
+          // Cerca la competenza nel database usando la funzione che abbiamo creato
           const datiBursi = trovaDatiCurricolo(id);
           return `
             <tr>
