@@ -488,38 +488,69 @@ const sviluppaUdaCompleta = async (propostaScelta: string) => {
           </div>
         </div>
 
-        {/* SEZIONE TRAGUARDI - DIVISA PER ORDINE DI SCUOLA */}
-        <div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
-          <label className="block text-sm font-bold text-slate-700 mb-4 uppercase">
-            Seleziona Traguardi dal Curricolo IC Bursi ({scuola.toUpperCase()}):
-          </label>
-          <div className="space-y-4 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
-            {(scuola === "primaria" ? CURRICOLO_BURSI.primaria : CURRICOLO_BURSI.secondaria).map((comp, i) => (
-              <div key={i}>
-                <p className="text-[10px] font-black text-slate-400 uppercase mb-2 border-b">{comp.competenza}</p>
-                <div className="grid grid-cols-1 gap-2">
-                  {comp.traguardi.map(t => (
-                    <label key={t.id} className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selectedTraguardi.includes(`${t.id}: ${t.testo}`) ? "bg-white border-blue-500 ring-1 ring-blue-500" : "bg-white/50 border-slate-100 hover:border-slate-300"}`}>
-                      <input 
-                        type="checkbox" 
-                        checked={selectedTraguardi.includes(`${t.id}: ${t.testo}`)}
-                        onChange={() => toggleTraguardo(t)}
-                        className="mt-1 w-4 h-4 text-blue-600 rounded"
-                      />
-                      <div className="text-xs">
-                        <span className="font-bold text-blue-600 mr-2">{t.id}</span>
-                        <span className="text-slate-700">{t.testo}</span>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-          {selectedTraguardi.length > 0 && (
-            <p className="mt-2 text-[10px] font-bold text-blue-600 uppercase">Traguardi selezionati: {selectedTraguardi.length}</p>
-          )}
+      {/* SEZIONE TRAGUARDI - DIVISA PER ORDINE DI SCUOLA */}
+<div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+  <label className="block text-sm font-bold text-slate-700 mb-4 uppercase tracking-wider">
+    Seleziona Traguardi dal Curricolo IC Bursi ({scuola.toUpperCase()}):
+  </label>
+
+  <div className="space-y-6 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+    {(scuola === "primaria" ? CURRICOLO_BURSI.primaria : CURRICOLO_BURSI.secondaria).map((comp, i) => (
+      <div key={i} className="space-y-3">
+        {/* TITOLO COMPETENZA: Appare una sola volta sopra i suoi traguardi */}
+        <div className="flex items-center gap-2">
+          <div className="h-px flex-1 bg-slate-200"></div>
+          <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest px-2">
+            {comp.competenza}
+          </p>
+          <div className="h-px flex-1 bg-slate-200"></div>
         </div>
+
+        <div className="grid grid-cols-1 gap-2">
+          {comp.traguardi.map(t => {
+            const isSelected = selectedTraguardi.includes(`${t.id}: ${t.testo}`);
+            return (
+              <label 
+                key={t.id} 
+                className={`flex items-start gap-4 p-4 rounded-2xl border cursor-pointer transition-all duration-200 ${
+                  isSelected 
+                    ? "bg-blue-50 border-blue-500 shadow-sm" 
+                    : "bg-white border-slate-100 hover:border-slate-300 shadow-sm"
+                }`}
+              >
+                <div className="relative flex items-center h-5">
+                  <input 
+                    type="checkbox" 
+                    checked={isSelected}
+                    onChange={() => toggleTraguardo(t)}
+                    className="w-5 h-5 text-blue-600 border-slate-300 rounded-lg focus:ring-blue-500 transition-all cursor-pointer"
+                  />
+                </div>
+                
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-blue-600 uppercase mb-0.5">
+                    {t.id}
+                  </span>
+                  <span className={`text-sm leading-snug ${isSelected ? "text-blue-900 font-medium" : "text-slate-700"}`}>
+                    {t.testo}
+                  </span>
+                </div>
+              </label>
+            );
+          })}
+        </div>
+      </div>
+    ))}
+  </div>
+
+  {selectedTraguardi.length > 0 && (
+    <div className="mt-4 pt-4 border-t border-slate-200 flex justify-between items-center">
+      <p className="text-[10px] font-bold text-blue-600 uppercase italic">
+        {selectedTraguardi.length} traguardi selezionati per questa UDA
+      </p>
+    </div>
+  )}
+</div>
 
        {/* INPUT LIBERO */}
         <div className="mb-8">
