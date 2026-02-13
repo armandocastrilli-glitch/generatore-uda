@@ -290,7 +290,6 @@ export default function GeneratoreUDA() {
           titolo, scuola, classe, materie, periodo, ore, propostaScelta, 
           traguardiScelti: selectedTraguardi, 
           tipoRichiesta: "UDA_COMPLETA",
-          // PROTOCOLLO DI GENERAZIONE COMPITO DI REALTÀ - IC BURSI
           istruzioniSviluppo: `
             PROTOCOLLO DI GENERAZIONE VINCOLATA - MODELLO COMPITO DI REALTÀ (IC BURSI)
             ${isCompilazioneDiretta 
@@ -304,12 +303,12 @@ export default function GeneratoreUDA() {
             - PRODOTTO FINALE: Deve esserci un output concreto (un video, un evento, un manufatto, un kit).
             
             PARAMETRI DI TARATURA:
-            1. CLASSE E ORDINE: Classe ${classe}ª, Scuola ${scuola}. Calibra linguaggio e complessità (es. gioco in 1ª primaria, analisi critica in 3ª secondaria).
+            1. CLASSE E ORDINE: Classe ${classe}ª, Scuola ${scuola}. Calibra linguaggio e complessità.
             2. TEMPI: Massimo ${ore} ore totali.
             3. MATERIE: ${materie.join(", ")}.
-            4. TRAGUARDI: Usa ESCLUSIVAMENTE ${selectedTraguardi.join(" | ")}. L'attività deve permettere di valutare questi traguardi.
+            4. TRAGUARDI: Usa ESCLUSIVAMENTE ${selectedTraguardi.join(" | ")}.
             5. NOTE DOCENTE: Integra fedelmente: ${descrizioneLibera}.
-            6. FORMATO: Output professionale in Markdown. In [CONTESTO] descrivi lo scenario del compito di realtà.
+            6. FORMATO: Output professionale in Markdown.
           `,
         }),
       });
@@ -321,6 +320,7 @@ export default function GeneratoreUDA() {
       setLoading(false); 
     }
   };
+
   // Questa funzione serve a recuperare la competenza partendo dall'ID del traguardo
   const trovaDatiCurricolo = (idTraguardo: string) => {
     // Uniamo i due database (primaria e secondaria) per la ricerca
@@ -424,12 +424,12 @@ export default function GeneratoreUDA() {
                 ${datiBursi?.competenza || "Competenza"}
               </td>
               <td>
-                <b>${id}</b>: ${datiBursi?.testo || t}
+                <b>${id}</b>: ${dtiBursi?.testo || t}
               </td>
             </tr>`;
         }).join("")}
       </table>
-
+a
       <table>
         <tr class="bg-grey">
           <td style="width:25%">Strumenti di valutazione</td><td>Prerequisiti</td><td>Soft Skills</td><td>Prodotto</td><td>Competenze</td>
