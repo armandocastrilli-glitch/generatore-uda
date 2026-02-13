@@ -307,6 +307,23 @@ const sviluppaUdaCompleta = async (propostaScelta: string) => {
       setLoading(false); 
     }
   };
+  // Questa funzione serve a recuperare la competenza partendo dall'ID del traguardo
+  const trovaDatiCurricolo = (idTraguardo: string) => {
+    // Uniamo i due database (primaria e secondaria) per la ricerca
+    const sezioni = [...CURRICOLO_BURSI.primaria, ...CURRICOLO_BURSI.secondaria];
+    
+    for (const sezione of sezioni) {
+      // Cerchiamo se il traguardo è in questa sezione
+      const traguardoTrovato = sezione.traguardi.find(t => t.id === idTraguardo);
+      if (traguardoTrovato) {
+        return { 
+          competenza: sezione.competenza, 
+          testo: traguardoTrovato.testo 
+        };
+      }
+    }
+    return null; // Se non trova nulla
+  };
  // --- FUNZIONE PASSO 3: DOWNLOAD MODELLO WORD (VERSIONE FINALE) ---
   const scaricaWordCompilato = () => {
     if (!udaFinale) return;
@@ -376,9 +393,27 @@ const sviluppaUdaCompleta = async (propostaScelta: string) => {
         <tr><td class="bg-grey">Consegna situazione/problema</td><td>${consegna}</td></tr>
       </table>
 
+     <p style="font-weight:bold; margin-top:10px; font-size:11pt;">TRAGUARDI DI COMPETENZA:</p>
       <table>
-        <tr><td class="bg-grey" style="width:25%">Traguardi di competenza</td>
-        <td>${traguardi !== "---" ? traguardi.replace(/\n/g, "<br/>") : selectedTraguardi.join("<br/>")}</td></tr>
+        <tr class="bg-grey" style="text-align:center;">
+          <td style="width:30%">Competenza di riferimento</td>
+          <td style="width:70%">Traguardi / Evidenze (Curricolo IC Bursi)</td>
+        </tr>
+        ${selectedTraguardi.map(t => {
+          // Isola l'ID (es. TS1)
+          const id = t.includes(":") ? t.split(":")[0].trim() : t.trim();
+          // Cerca la competenza nel database
+          const datiBursi = trovaDatiCurricolo(id);
+          return `
+            <tr>
+              <td style="background-color:#F9F9F9; font-size:9pt; font-weight:bold;">
+                ${datiBursi?.competenza || "Competenza"}
+              </td>
+              <td>
+                <b>${id}</b>: ${datiBursi?.testo || t}
+              </td>
+            </tr>`;
+        }).join("")}
       </table>
 
       <table>
