@@ -215,8 +215,23 @@ export default function GeneratoreUDA() {
 
   const listaMaterie = [
     "Italiano", "Storia", "Geografia", "Matematica", "Scienze", 
-    "Inglese", "Tecnologia", "Arte e Immagine", "Musica", "Ed. Fisica", "Religione"
+    "Inglese", "Tecnologia", "Arte e Immagine", "Musica", "Ed. Fisica", "Religione", "Sostegno"
   ];
+
+  // --- FUNZIONE DI SUPPORTO PER RECUPERARE LA COMPETENZA DAL CURRICOLO ---
+  const trovaDatiCurricolo = (idTraguardo: string) => {
+    const sezioni = [...CURRICOLO_BURSI.primaria, ...CURRICOLO_BURSI.secondaria];
+    for (const sezione of sezioni) {
+      const traguardoTrovato = sezione.traguardi.find(t => t.id === idTraguardo);
+      if (traguardoTrovato) {
+        return { 
+          competenza: sezione.competenza, 
+          testo: traguardoTrovato.testo 
+        };
+      }
+    }
+    return null;
+  };
 
   const toggleMateria = (m: string) => {
     setMaterie(prev => prev.includes(m) ? prev.filter(item => item !== m) : [...prev, m]);
@@ -229,7 +244,7 @@ export default function GeneratoreUDA() {
     );
   };
 
-  // 1. FUNZIONE PER GENERARE LE 3 IDEE INIZIALI
+  // 1. FUNZIONE PER GENERARE LE 3 IDEE INIZIALI (FOCUS: COMPITI DI REALTÀ)
   const handleGeneraProposte = async () => {
     if (!titolo || materie.length === 0) {
       alert("Inserisci almeno il titolo e una materia!");
@@ -244,7 +259,8 @@ export default function GeneratoreUDA() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           titolo, scuola, classe, descrizioneLibera, materie, periodo, ore,
-          tipoRichiesta: "PROPOSTE" 
+          tipoRichiesta: "PROPOSTE",
+          istruzioniExtra: "Genera esclusivamente 3 idee basate sul modello del COMPITO DI REALTÀ con situazione problema e prodotto finale tangibile."
         }),
       });
       const data = await res.json();
@@ -256,15 +272,14 @@ export default function GeneratoreUDA() {
     }
   };
 
-  // 2. FUNZIONE PER SVILUPPARE L'UDA COMPLETA
-const sviluppaUdaCompleta = async (propostaScelta: string) => {
+  // 2. FUNZIONE PER SVILUPPARE L'UDA COMPLETA (PROTOCOLLO COMPITO DI REALTÀ)
+  const sviluppaUdaCompleta = async (propostaScelta: string) => {
     if (selectedTraguardi.length === 0) {
       alert("Seleziona i traguardi dal curricolo! Sono vincoli assoluti.");
       return;
     }
     setLoading(true);
     
-    // Capisce se stiamo compilando direttamente o sviluppando una proposta dell'AI
     const isCompilazioneDiretta = propostaScelta.includes("COMPILAZIONE_DIRETTA");
 
     try {
@@ -272,30 +287,29 @@ const sviluppaUdaCompleta = async (propostaScelta: string) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
-          titolo, 
-          scuola, 
-          classe, 
-          materie, 
-          periodo, 
-          ore, 
-          propostaScelta, 
+          titolo, scuola, classe, materie, periodo, ore, propostaScelta, 
           traguardiScelti: selectedTraguardi, 
           tipoRichiesta: "UDA_COMPLETA",
-          // PROTOCOLLO DI TARATURA RIGIDA (Unificato e Potenziato)
+          // PROTOCOLLO DI GENERAZIONE COMPITO DI REALTÀ - IC BURSI
           istruzioniSviluppo: `
-            PROTOCOLLO DI GENERAZIONE VINCOLATA - IC BURSI
+            PROTOCOLLO DI GENERAZIONE VINCOLATA - MODELLO COMPITO DI REALTÀ (IC BURSI)
             ${isCompilazioneDiretta 
-              ? "AGISCI COME COMPILATORE TECNICO: Trasforma le note del docente in un'UDA formattata senza aggiungere creatività esterna." 
-              : `SVILUPPA L'IDEA SCELTA: "${propostaScelta}"`
+              ? "AGISCI COME COMPILATORE TECNICO: Trasforma le note del docente in un compito di realtà formattato." 
+              : `SVILUPPA L'IDEA SCELTA COME COMPITO DI REALTÀ: "${propostaScelta}"`
             }
 
-            PARAMETRI REALI DA RISPETTARE (NON DEROGABILI):
-            1. CLASSE E ORDINE: Classe ${classe}ª, Scuola ${scuola}. Linguaggio e attività devono essere tarati esattamente su questa età.
-            2. TEMPI: Massimo ${ore} ore totali. La sequenza didattica deve essere realistica per questo monte ore.
+            VINCOLI PEDAGOGICI MANDATORI:
+            - SITUAZIONE PROBLEMA: L'UDA deve partire da un problema autentico e sfidante.
+            - RUOLO: Definisci il ruolo operativo degli alunni (es. sarete guide turistiche, scienziati, redattori).
+            - PRODOTTO FINALE: Deve esserci un output concreto (un video, un evento, un manufatto, un kit).
+            
+            PARAMETRI DI TARATURA:
+            1. CLASSE E ORDINE: Classe ${classe}ª, Scuola ${scuola}. Calibra linguaggio e complessità (es. gioco in 1ª primaria, analisi critica in 3ª secondaria).
+            2. TEMPI: Massimo ${ore} ore totali.
             3. MATERIE: ${materie.join(", ")}.
-            4. TRAGUARDI (ASSOLUTO): Usa SOLO ${selectedTraguardi.join(" | ")}. Divieto di inventare competenze chiave o obiettivi extra.
-            5. NOTE DOCENTE: Integra fedelmente queste indicazioni: ${descrizioneLibera}.
-            6. FORMATO: Output diretto, professionale, in Markdown, senza introduzioni discorsive.
+            4. TRAGUARDI: Usa ESCLUSIVAMENTE ${selectedTraguardi.join(" | ")}. L'attività deve permettere di valutare questi traguardi.
+            5. NOTE DOCENTE: Integra fedelmente: ${descrizioneLibera}.
+            6. FORMATO: Output professionale in Markdown. In [CONTESTO] descrivi lo scenario del compito di realtà.
           `,
         }),
       });
