@@ -414,7 +414,7 @@ export default function GeneratoreUDA() {
             </tr>`;
         }).join("")}
       </table>
-a
+      
       <table>
         <tr class="bg-grey">
           <td style="width:25%">Strumenti di valutazione</td><td>Prerequisiti</td><td>Soft Skills</td><td>Prodotto</td><td>Competenze</td>
