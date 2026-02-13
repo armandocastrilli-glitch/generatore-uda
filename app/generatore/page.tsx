@@ -600,51 +600,56 @@ const corpoHtml = `
           />
         </div>
 
-        {/* SEZIONE AZIONI DOPPIA: SCELTA DELLA MODALITÀ */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-
-          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 my-6 text-sm text-amber-800">
-  <p className="font-bold uppercase mb-1">⚠️ Avviso Sicurezza e Privacy</p>
-  <p>
-    Questo strumento utilizza l'intelligenza artificiale (Groq Cloud). 
-    <strong> È severamente vietato inserire nomi, cognomi, codici fiscali o dati sensibili </strong> 
-    riguardanti alunni e colleghi. Inserisci esclusivamente indicazioni didattiche generali.
-  </p>
-  <p className="mt-2 italic">
-    L'utente è l'unico responsabile dei contenuti inseriti nel generatore.
-  </p>
-</div>
+       {/* --- AREA AZIONI: DISCLAIMER E TASTI --- */}
+        <div className="flex flex-col w-full mt-8 max-w-2xl mx-auto">
           
-          {/* TASTO A: MODALITÀ CREATIVA (GENERA 3 IDEE) */}
-          <button 
-            onClick={handleGeneraProposte} 
-            disabled={loading || !titolo}
-            className="flex flex-col items-center justify-center p-6 bg-white border-2 border-blue-600 rounded-3xl hover:bg-blue-50 transition-all disabled:opacity-50 shadow-sm group"
-          >
-            <span className="text-blue-600 font-black uppercase tracking-widest text-sm group-hover:scale-105 transition-transform">
-              💡 Fammi delle proposte
-            </span>
-            <span className="text-[10px] text-slate-400 mt-1 italic font-sans normal-case">
-              L'AI ti suggerisce 3 bozze tra cui scegliere
-            </span>
-          </button>
+          {/* 1. DISCLAIMER (Occupa tutta la larghezza sopra i tasti) */}
+          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6 text-sm text-amber-800 rounded-r-md shadow-sm">
+            <p className="font-bold uppercase mb-1">⚠️ Avviso Sicurezza e Privacy</p>
+            <p>
+              Questo strumento utilizza l'intelligenza artificiale (Groq Cloud). 
+              <strong> È severamente vietato inserire nomi, cognomi, codici fiscali o dati sensibili </strong> 
+              riguardanti alunni e colleghi. Inserisci esclusivamente indicazioni didattiche generali.
+            </p>
+            <p className="mt-2 italic text-[11px]">
+              L'utente è l'unico responsabile dei contenuti inseriti nel generatore.
+            </p>
+          </div>
 
-          {/* TASTO B: MODALITÀ TECNICA (COMPILAZIONE DIRETTA) */}
-          <button 
-            onClick={() => sviluppaUdaCompleta("COMPILAZIONE_DIRETTA: Basata rigorosamente su note docente.")} 
-            disabled={loading || !titolo || selectedTraguardi.length === 0}
-            className="flex flex-col items-center justify-center p-6 bg-blue-600 border-2 border-blue-600 rounded-3xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50 group"
-          >
-            <span className="text-white font-black uppercase tracking-widest text-sm group-hover:scale-105 transition-transform">
-              📝 Compila la mia UDA
-            </span>
-            <span className="text-blue-100 text-[10px] mt-1 italic font-sans normal-case">
-              Usa le mie note e i traguardi scelti
-            </span>
-          </button>
+          {/* 2. CONTENITORE TASTI (In colonna per massima chiarezza) */}
+          <div className="flex flex-col gap-4">
+            
+            {/* TASTO A: MODALITÀ CREATIVA */}
+            <button 
+              onClick={handleGeneraProposte} 
+              disabled={loading || !titolo}
+              className="flex flex-col items-center justify-center p-6 bg-white border-2 border-blue-600 rounded-3xl hover:bg-blue-50 transition-all disabled:opacity-50 shadow-sm group"
+            >
+              <span className="text-blue-600 font-black uppercase tracking-widest text-sm group-hover:scale-105 transition-transform">
+                💡 1. Fammi delle proposte
+              </span>
+              <span className="text-[10px] text-slate-400 mt-1 italic font-sans normal-case">
+                L'AI ti suggerisce 3 bozze tra cui scegliere
+              </span>
+            </button>
 
+            {/* TASTO B: MODALITÀ TECNICA */}
+            <button 
+              onClick={() => sviluppaUdaCompleta("COMPILAZIONE_DIRETTA: Basata rigorosamente su note docente.")} 
+              disabled={loading || !titolo || selectedTraguardi.length === 0}
+              className="flex flex-col items-center justify-center p-6 bg-blue-600 border-2 border-blue-600 rounded-3xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50 group"
+            >
+              <span className="text-white font-black uppercase tracking-widest text-sm group-hover:scale-105 transition-transform">
+                📝 2. Compila la mia UDA
+              </span>
+              <span className="text-blue-100 text-[10px] mt-1 italic font-sans normal-case">
+                Usa le mie note e i traguardi scelti (scarica Word)
+              </span>
+            </button>
+            
+          </div>
         </div>
-
+        
         {/* FEEDBACK VISIVO DURANTE IL CARICAMENTO */}
         {loading && (
           <div className="mt-6 text-center animate-pulse">
