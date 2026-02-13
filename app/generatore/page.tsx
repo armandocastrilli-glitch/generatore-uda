@@ -218,21 +218,6 @@ export default function GeneratoreUDA() {
     "Inglese", "Tecnologia", "Arte e Immagine", "Musica", "Ed. Fisica", "Religione", "Sostegno"
   ];
 
-  // --- FUNZIONE DI SUPPORTO PER RECUPERARE LA COMPETENZA DAL CURRICOLO ---
-  const trovaDatiCurricolo = (idTraguardo: string) => {
-    const sezioni = [...CURRICOLO_BURSI.primaria, ...CURRICOLO_BURSI.secondaria];
-    for (const sezione of sezioni) {
-      const traguardoTrovato = sezione.traguardi.find(t => t.id === idTraguardo);
-      if (traguardoTrovato) {
-        return { 
-          competenza: sezione.competenza, 
-          testo: traguardoTrovato.testo 
-        };
-      }
-    }
-    return null;
-  };
-
   const toggleMateria = (m: string) => {
     setMaterie(prev => prev.includes(m) ? prev.filter(item => item !== m) : [...prev, m]);
   };
