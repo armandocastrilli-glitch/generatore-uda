@@ -228,7 +228,19 @@ export default function GeneratoreUDA() {
       prev.includes(stringaTraguardo) ? prev.filter(item => item !== stringaTraguardo) : [...prev, stringaTraguardo]
     );
   };
-
+  
+<div className="bg-amber-50 border-l-4 border-amber-500 p-4 my-6 text-sm text-amber-800">
+  <p className="font-bold uppercase mb-1">⚠️ Avviso Sicurezza e Privacy</p>
+  <p>
+    Questo strumento utilizza l'intelligenza artificiale (Groq Cloud). 
+    <strong> È severamente vietato inserire nomi, cognomi, codici fiscali o dati sensibili </strong> 
+    riguardanti alunni e colleghi. Inserisci esclusivamente indicazioni didattiche generali.
+  </p>
+  <p className="mt-2 italic">
+    L'utente è l'unico responsabile dei contenuti inseriti nel generatore.
+  </p>
+</div>
+  
   // 1. FUNZIONE PER GENERARE LE 3 IDEE INIZIALI (FOCUS: COMPITI DI REALTÀ)
   const handleGeneraProposte = async () => {
     if (!titolo || materie.length === 0) {
