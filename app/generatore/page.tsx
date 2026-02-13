@@ -251,7 +251,7 @@ export default function GeneratoreUDA() {
       const data = await res.json();
       if (data.proposte) setProposte(data.proposte);
     } catch (err) {
-      alert("Errore di connessione al server.");
+      alert("⚠️ OPS! Troppi docenti collegati o limite raggiunto. Per favore attendi 60 secondi e riprova: il sistema gratuito si ricarica ogni minuto!");
     } finally {
       setLoading(false);
     }
