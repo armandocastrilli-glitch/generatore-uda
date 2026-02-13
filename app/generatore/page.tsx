@@ -409,7 +409,7 @@ export default function GeneratoreUDA() {
                 ${datiBursi?.competenza || "Competenza"}
               </td>
               <td>
-                <b>${id}</b>: ${dtiBursi?.testo || t}
+                <b>${id}</b>: ${datiBursi?.testo || t}
               </td>
             </tr>`;
         }).join("")}
