@@ -46,8 +46,8 @@ const CURRICOLO_BURSI = {
         { id: "TP19", testo: "Accedere e navigare in contenuti digitali semplici." },
         { id: "TP20", testo: "Creare semplici contenuti digitali (testi, disegni, presentazioni)." },
         { id: "TP21", testo: "Riconoscere i rischi e i benefici dell'uso della rete." },
-        { id: "TP22", testo: "Risolvere problemi tecnologici elementari." },
-        { id: "TP23", testo: "Utilizzare il pensiero computazionale per risolvere piccoli quesiti." }
+        { id: "TP22", testo: "Condividere informazioni in modo responsabile in contesti protetti." },
+        { id: "TP23", testo: "Collaborare per produrre semplici contenuti digitali (testi, presentazioni ecc.)." }
       ]
     },
     {
