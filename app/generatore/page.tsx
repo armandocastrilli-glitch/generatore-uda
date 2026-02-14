@@ -31,19 +31,19 @@ const CURRICOLO_BURSI = {
     {
       competenza: "3. Matematica, Scienze, Tecnologia, Geografia",
       traguardi: [
-        { id: "TP12", testo: "Classificare oggetti e fenomeni in base a criteri definiti." },
+        { id: "TP12", testo: "Classificare e raggruppare oggetti e fenomeni in base a criteri definiti." },
         { id: "TP13", testo: "Produrre diverse soluzioni per un problema tecnico o matematico." },
-        { id: "TP14", testo: "Utilizzare strumenti di misura e rappresentazione spaziale." },
-        { id: "TP15", testo: "Riconoscere strutture e meccanismi elementari in macchine d'uso comune." },
+        { id: "TP14", testo: "Utilizzare strumenti, tecnologie e dati per risolvere problemi semplici." },
+        { id: "TP15", testo: "Organizzare informazioni con diversi strumenti." },
         { id: "TP16", testo: "Formulare ipotesi semplici basate sull'osservazione scientifica." },
-        { id: "TP17", testo: "Riconoscere le relazioni tra uomo e ambiente nelle scale geografiche." }
+        { id: "TP17", testo: "Riconoscere regolarità e pattern in fenomeni naturali e artificiali." }
       ]
     },
     {
       competenza: "4. Digitale",
       traguardi: [
-        { id: "TP18", testo: "Utilizzare le tecnologie digitali con consapevolezza per scopi comunicativi." },
-        { id: "TP19", testo: "Cercare, raccogliere e conservare informazioni digitali." },
+        { id: "TP18", testo: "Ricercare informazioni di base in ambienti digitali sicuri." },
+        { id: "TP19", testo: "Accedere e navigare in contenuti digitali semplici." },
         { id: "TP20", testo: "Creare semplici contenuti digitali (testi, disegni, presentazioni)." },
         { id: "TP21", testo: "Riconoscere i rischi e i benefici dell'uso della rete." },
         { id: "TP22", testo: "Risolvere problemi tecnologici elementari." },
