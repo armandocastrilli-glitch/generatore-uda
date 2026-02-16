@@ -53,30 +53,30 @@ const CURRICOLO_BURSI = {
     {
       competenza: "5. Personale, Sociale e Imparare a Imparare",
       traguardi: [
-        { id: "TP24", testo: "Gestire il proprio tempo e le proprie attività scolastiche." },
-        { id: "TP25", testo: "Riflettere sul proprio percorso di apprendimento (metacognizione)." },
-        { id: "TP26", testo: "Collaborare costruttivamente in gruppo rispettando le regole." },
-        { id: "TP27", testo: "Esprimere e gestire le proprie emozioni in contesti relazionali." },
-        { id: "TP28", testo: "Dimostrare autonomia nello svolgimento dei compiti assegnati." },
-        { id: "TP29", testo: "Adottare stili di vita sani e corretti." }
+        { id: "TP24", testo: "Riconoscere l’importanza di uno stile di vita sano." },
+        { id: "TP25", testo: "Adottare comportamenti rispettosi verso l'ambiente." },
+        { id: "TP26", testo: "Pianificare e organizzare il proprio lavoro." },
+        { id: "TP27", testo: "Portare a termine un compito." },
+        { id: "TP28", testo: "Collaborare positivamente con gli altri." },
+        { id: "TP29", testo: "Riflettere sul proprio modo di apprendere." }
       ]
     },
     {
       competenza: "6. Cittadinanza (Ed. Civica)",
       traguardi: [
-        { id: "TP30", testo: "Riconoscere i diritti e i doveri fondamentali del cittadino." },
-        { id: "TP31", testo: "Conoscere e rispettare le regole della vita scolastica e sociale." },
-        { id: "TP32", testo: "Valorizzare le diversità e promuovere l'inclusione." },
-        { id: "TP33", testo: "Conoscere i simboli delle istituzioni (Stato, Regioni, Comuni)." },
-        { id: "TP34", testo: "Agire in modo responsabile per la tutela dell'ambiente." },
-        { id: "TP35", testo: "Esercitare la cittadinanza digitale in modo corretto e sicuro." },
-        { id: "TP36", testo: "Partecipare attivamente a progetti di solidarietà e volontariato." }
+        { id: "TP30", testo: "Partecipare a discussioni in modo costruttivo: rispetto dei turni di parola, ascolto attivo, interventi rispettosi." },
+        { id: "TP31", testo: "Costruire relazioni positive basate sul rispetto e l'empatia." },
+        { id: "TP32", testo: "Essere aperti a diverse idee e punti di vista." },
+        { id: "TP33", testo: "Riconoscere e apprezzare le diversità." },
+        { id: "TP34", testo: "Comprendere e rispettare i diritti e i doveri propri e altrui." },
+        { id: "TP35", testo: "Rispettare le autorità istituzionali riconosciute dalla Costituzione." },
+        { id: "TP36", testo: "Rispettare le regole e i beni pubblici e privati." }
       ]
     },
     {
       competenza: "7. Imprenditoriale",
       traguardi: [
-        { id: "TP37", testo: "Mostrare curiosità e apertura verso nuove esperienze e attività." },
+        { id: "TP37", testo: "Mostrare curiosità e apertura verso nuove esperienze." },
         { id: "TP38", testo: "Assumersi le proprie responsabilità, dimostrare impegno e laboriosità." },
         { id: "TP39", testo: "Affrontare gli insuccessi con resilienza e spirito critico." },
         { id: "TP40", testo: "Riconoscere e valorizzare i propri punti di forza e di debolezza." },
@@ -91,8 +91,8 @@ const CURRICOLO_BURSI = {
         { id: "TP44", testo: "Collocare nello spazio e nel tempo elementi culturali e opere d'arte." },
         { id: "TP45", testo: "Organizzare eventi personali e collettivi in sequenze temporali semplici." },
         { id: "TP46", testo: "Esprimersi attraverso diversi linguaggi (musicale, artistico, corporeo)." },
-        { id: "TP47", testo: "Riconoscere il valore del patrimonio culturale del proprio territorio." },
-        { id: "TP48", testo: "Partecipare a eventi culturali e manifestazioni artistiche." }
+        { id: "TP47", testo: "Produrre semplici elaborati artistici e musicali." },
+        { id: "TP48", testo: "Riconoscere diverse forme di espressione culturale (teatro, musica, cinema, opere d'arte ecc.)." }
       ]
     }
   ],
@@ -104,71 +104,81 @@ const CURRICOLO_BURSI = {
         { id: "TS2a", testo: "Interpretare il significato nel contesto: analizzare messaggi orali e visivi cogliendo sfumature." },
         { id: "TS2b", testo: "Interpretare il significato nel contesto: ricavare significati impliciti da messaggi scritti." },
         { id: "TS3", testo: "Padroneggiare strategie di lettura analitica e selettiva per testi complessi." },
-        { id: "TS4", testo: "Elaborare informazioni provenienti da diverse fonti, inclusi materiali digitali." },
-        { id: "TS5", testo: "Produrre testi scritti complessi e appropriati al contesto e allo scopo." },
+        { id: "TS4", testo: "Elaborare informazioni complesse provenienti da diverse fonti, inclusi materiali digitali." },
+        { id: "TS5", testo: "Comunicare in modo efficace e consapevole attraverso un vocabolario ricco e testi scritti complessi." },
         { id: "TS6", testo: "Pensare in modo flessibile: esaminare argomenti da più punti di vista." },
         { id: "TS7", testo: "Padroneggiare gli elementi fondamentali della frase semplice e complessa." }
       ]
     },
     {
-      competenza: "2. Multilinguistica",
+      competenza: "2. Multilinguistica (Inglese)",
       traguardi: [
-        { id: "TS8", testo: "Comprendere i punti principali di messaggi in lingua straniera su temi noti." },
-        { id: "TS9", testo: "Interagire in lingua straniera in situazioni quotidiane e di studio." },
-        { id: "TS10", testo: "Produrre testi semplici e coerenti su argomenti di interesse personale." },
-        { id: "TS11", testo: "Utilizzare strategie di compensazione per comunicare con risorse limitate." },
-        { id: "TS12", testo: "Riconoscere le differenze culturali tra la propria lingua e quella straniera." },
-        { id: "TS13", testo: "Utilizzare strumenti digitali per l'apprendimento linguistico." }
+        { id: "TS8", testo: "Produrre frasi complesse e significative." },
+        { id: "TS9", testo: "Utilizzare un registro linguistico appropriato e curare pronuncia e intonazione." },
+        { id: "TS10", testo: "Comprendere e riassumere testi su argomenti familiari e di studio." },
+        { id: "TS11", testo: "Interagire in diverse situazioni comunicative: partecipare attivamente a conversazioni su argomenti di interesse." },
+        { id: "TS12", testo: "Riconoscere le più evidenti somiglianze e differenze linguistiche e culturali di base." },
+        { id: "TS13", testo: "Raccontare per iscritto fatti ed esperienze." }
+      ]
+    },
+     {
+      competenza: "2. Multilinguistica (Francese)",
+      traguardi: [
+        { id: "TS14", testo: "Comprendere e utilizzare espressioni di base." },
+        { id: "TS15", testo: "Presentare sé stessi e gli altri." },
+        { id: "TS16", testo: "Rispondere a domande personali." },
+        { id: "TS17", testo: "Descrivere situazioni e luoghi familiari." },
+        { id: "TS18", testo: "Scrivere brevi testi su argomenti familiari." }
       ]
     },
     {
       competenza: "3. Matematica, Scienze, Tecnologia, Geografia",
       traguardi: [
-        { id: "TS19", testo: "Utilizzare linguaggi logico-matematici per modellizzare situazioni reali." },
-        { id: "TS20", testo: "Analizzare dati e informazioni per trarre conclusioni motivate." },
-        { id: "TS21", testo: "Utilizzare strumenti tecnologici per progettare e realizzare soluzioni." },
-        { id: "TS22", testo: "Spiegare fenomeni naturali utilizzando leggi e modelli scientifici." },
-        { id: "TS23", testo: "Rispettare le norme di sicurezza nell'uso di strumenti e laboratori." },
-        { id: "TS24", testo: "Analizzare i processi di trasformazione dell'energia e il loro impatto." },
-        { id: "TS25", testo: "Interpretare il paesaggio geografico come sistema antropico-naturale." }
+        { id: "TS19", testo: "Ordinare e classificare secondo criteri complessi e autonomi." },
+        { id: "TS20", testo: "Individuare e selezionare strategie risolutive efficaci." },
+        { id: "TS21", testo: "Trasferire relazioni causali, analogiche e di differenza tra contesti: relazione causa-effetto." },
+        { id: "TS22", testo: "Valutare i fenomeni con criteri interiorizzati: pensiero critico." },
+        { id: "TS23", testo: "Costruire concetti e relazioni da osservazioni ed esplorazioni." },
+        { id: "TS24", testo: "Valutare l'attendibilità di fonti di informazione scientifica e tecnologica." },
+        { id: "TS25", testo: "Applicare il pensiero logico-scientifico per analizzare fenomeni del mondo reale." }
       ]
     },
     {
       competenza: "4. Digitale",
       traguardi: [
-        { id: "TS26", testo: "Gestire in modo autonomo e critico le informazioni digitali." },
-        { id: "TS27", testo: "Utilizzare software di produttività per organizzare dati e contenuti." },
-        { id: "TS28", testo: "Creare e modificare contenuti digitali multimediali complessi." },
-        { id: "TS29", testo: "Riconoscere e prevenire rischi legati al cyberbullismo e alla privacy." },
-        { id: "TS30", testo: "Programmare semplici algoritmi per risolvere problemi specifici." },
-        { id: "TS31", testo: "Valutare l'affidabilità delle fonti di informazione online." },
-        { id: "TS32", testo: "Sperimentare diverse forme di comunicazione mediata dalle tecnologie." },
-        { id: "TS33", testo: "Configurare e personalizzare dispositivi digitali per le proprie esigenze." }
+        { id: "TS26", testo: "Utilizzare strategie avanzate di ricerca online." },
+        { id: "TS27", testo: "Selezionare strumenti digitali appropriati per la comunicazione." },
+        { id: "TS28", testo: "Utilizzare strategie avanzate di ricerca online." },
+        { id: "TS29", testo: "Collaborare efficacemente online." },
+        { id: "TS30", testo: "Produrre e rielaborare contenuti digitali in modo creativo e responsabile." },
+        { id: "TS31", testo: " Comprendere i principi fondamentali della sicurezza online e della protezione dei dati personali." },
+        { id: "TS32", testo: "Identificare e affrontare problemi nelle interazioni sui social media: comportamenti responsabili e sicuri." },
+        { id: "TS33", testo: "Valutare la sicurezza e l'affidabilità di siti web." }
       ]
     },
     {
       competenza: "5. Personale, Sociale e Imparare a Imparare",
       traguardi: [
-        { id: "TS34", testo: "Pianificare il proprio lavoro scolastico e gestire le scadenze." },
-        { id: "TS35", testo: "Valutare criticamente le proprie prestazioni e i propri errori." },
-        { id: "TS36", testo: "Collaborare attivamente in team multidisciplinari." },
-        { id: "TS37", testo: "Dimostrare empatia e rispetto verso i compagni." },
-        { id: "TS38", testo: "Gestire lo stress e le sfide con atteggiamento propositivo." },
-        { id: "TS39", testo: "Essere consapevoli delle proprie inclinazioni per l'orientamento futuro." }
+        { id: "TS34", testo: "Adottare uno stile di vita sano." },
+        { id: "TS35", testo: "Comprendere e valorizzare l'ambiente e il territorio." },
+        { id: "TS36", testo: "Elaborare giudizi basati su valori ed esperienze personali." },
+        { id: "TS37", testo: "Esprimere creatività e pensiero originale." },
+        { id: "TS38", testo: "Autovalutare le proprie prestazioni in modo specifico e costruttivo." },
+        { id: "TS39", testo: "Pianificare e gestire progetti personali e di gruppo (obiettivi, tempo, collaborazione)." }
       ]
     },
     {
       competenza: "6. Cittadinanza (Ed. Civica)",
       traguardi: [
-        { id: "TS40", testo: "Agire come cittadino responsabile nel rispetto della Costituzione." },
-        { id: "TS41", testo: "Conoscere le istituzioni europee e internazionali." },
-        { id: "TS42", testo: "Analizzare criticamente i fenomeni sociali e i problemi globali." },
-        { id: "TS43", testo: "Sviluppare progetti per la legalità e la lotta alle mafie." },
-        { id: "TS44", testo: "Rispettare i beni comuni e il patrimonio pubblico." },
-        { id: "TS45", testo: "Promuovere lo sviluppo sostenibile e l'economia circolare." },
-        { id: "TS46", testo: "Partecipare al dibattito democratico rispettando le opinioni altrui." },
-        { id: "TS47", testo: "Applicare i principi della sicurezza stradale e del primo soccorso." },
-        { id: "TS48", testo: "Riconoscere l'importanza del volontariato e dell'impegno civile." }
+        { id: "TS40", testo: "Valorizzare attivamente le diverse opinioni." },
+        { id: "TS41", testo: "Accogliere e utilizzare le critiche in modo costruttivo." },
+        { id: "TS42", testo: "Riconoscere e valorizzare la diversità sociale e culturale." },
+        { id: "TS43", testo: "Rispettare le autorità istituzionali riconosciute dalla Costituzione." },
+        { id: "TS44", testo: "Rispettare le regole e i beni pubblici e privati." },
+        { id: "TS45", testo: "Comprendere le basi delle strutture sociali, economiche e politiche." },
+        { id: "TS46", testo: "Adottare comportamenti sostenibili e responsabili verso l'ambiente e i beni comuni." },
+        { id: "TS47", testo: "Difendere e promuovere i diritti e i doveri propri e altrui." },
+        { id: "TS48", testo: "Partecipare attivamente a iniziative di cittadinanza responsabile e solidale." }
       ]
     },
     {
@@ -184,12 +194,12 @@ const CURRICOLO_BURSI = {
     {
       competenza: "8. Consapevolezza ed Espressione Culturale",
       traguardi: [
-        { id: "TS54", testo: "Riconoscere e analizzare i principali stili e correnti artistiche e musicali." },
-        { id: "TS55", testo: "Utilizzare diversi linguaggi espressivi per comunicare messaggi complessi." },
-        { id: "TS56", testo: "Collocare opere e fenomeni culturali nel loro contesto storico e sociale." },
-        { id: "TS57", testo: "Apprezzare la varietà delle espressioni culturali come patrimonio dell'umanità." },
-        { id: "TS58", testo: "Partecipare attivamente a laboratori di teatro, musica o arte." },
-        { id: "TS59", testo: "Analizzare criticamente messaggi pubblicitari e prodotti mediatici." }
+        { id: "TS54", testo: "Utilizzare diverse fonti di conoscenza sul passato e sul presente per acquisire informazioni culturali." },
+        { id: "TS55", testo: "Analizzare elementi significativi del passato e del presente." },
+        { id: "TS56", testo: "Consolidare la consapevolezza della propria identità nel contesto della diversità." },
+        { id: "TS57", testo: "Riconoscere e apprezzare le diverse forme di espressione culturale." },
+        { id: "TS58", testo: "Analizzare e interpretare diverse rappresentazioni culturali." },
+        { id: "TS59", testo: "Realizzare produzioni artistiche e musicali personali e collaborative." }
       ]
     }
   ]
