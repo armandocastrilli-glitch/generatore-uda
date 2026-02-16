@@ -612,6 +612,32 @@ const corpoHtml = `
             className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl h-24 outline-none focus:ring-2 focus:ring-blue-500" 
           />
         </div>
+        
+        {/* --- NUOVI SPAZI COMPILABILI FACOLTATIVI --- */}
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+  <div>
+    <label className="block text-sm font-bold text-slate-700 mb-2 uppercase">
+      Metodologie Didattiche (Facoltativo)
+    </label>
+    <textarea
+      value={metodologie}
+      onChange={(e) => setMetodologie(e.target.value)}
+      placeholder="Es: Peer teaching, Cooperative Learning..."
+      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 h-24 text-sm"
+    />
+  </div>
+  <div>
+    <label className="block text-sm font-bold text-slate-700 mb-2 uppercase">
+      Prodotto o Prodotti Finali (Facoltativo)
+    </label>
+    <textarea
+      value={prodotti}
+      onChange={(e) => setProdotti(e.target.value)}
+      placeholder="Es: Realizzazione di un podcast, Lapbook, Mostra fotografica..."
+      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 h-24 text-sm"
+    />
+  </div>
+</div>
 
        {/* --- AREA AZIONI: DISCLAIMER E TASTI --- */}
         <div className="flex flex-col w-full mt-8 max-w-2xl mx-auto">
