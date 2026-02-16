@@ -4,7 +4,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     
-    // 1. ESTRAZIONE DATI (Corretti i nomi che nel PDF avevano spazi)
+    // 1. ESTRAZIONE DATI - Qui c'erano gli errori (spazi nei nomi)
     const { 
       titolo, scuola, classe, materie, periodo, ore, 
       propostaScelta, tipoRichiesta, descrizioneLibera,
@@ -14,60 +14,46 @@ export async function POST(req: Request) {
     const apiKey = process.env.GROQ_API_KEY;
 
     if (!apiKey) {
-      return NextResponse.json({ error: "API Key mancante" }, { status: 500 });
+      return NextResponse.json({ error: "API Key mancante sul server" }, { status: 500 });
     }
 
     let prompt = "";
 
-    // 2. LOGICA SVILUPPO UDA COMPLETA (Mantenuti tutti i tuoi TAG)
+    // 2. LOGICA UDA COMPLETA
     if (tipoRichiesta === "UDA_COMPLETA") {
       prompt = `
-Agisci come un Esperto Progettista Didattico dell'IC Bursi.
-Genera i contenuti per l'UDA "${titolo}" per una classe ${classe}ª ${scuola}.
+Agisci come un Esperto Progettista Didattico dell'IC Bursi. 
+DEVI generare i contenuti per l'UDA intitolata "${titolo}" rispettando i vincoli forniti.
 
 DATI TECNICI:
+- Ordine: ${scuola} | Classe: ${classe}ª
 - Materie: ${materie?.join(", ")}
 - Ore: ${ore} | Periodo: ${periodo}
-- Traguardi: ${traguardiScelti?.join(" | ")}
+- Traguardi scelti: ${traguardiScelti?.join(" | ")}
 
 VINCOLI DOCENTE:
-- Metodologie: ${metodologie || "Didattica attiva"}
-- Prodotto: ${prodotti || "Compito di realtà"}
-- Note: ${descrizioneLibera}
+- METODOLOGIE: ${metodologie || "Didattica attiva e collaborativa"}
+- PRODOTTO FINALE: ${prodotti || "Output concreto"}
+- NOTE: ${descrizioneLibera || "Nessuna"}
 
-REGOLE DI FORMATTAZIONE (OBBLIGATORIE):
-Usa esattamente questi tag:
+REGOLE DI FORMATTAZIONE:
+L'output deve essere diviso dai seguenti tag: [CONTESTO], [CONSEGNA], [TRAGUARDI], [PRODOTTO], [PIANO_LAVORO], [VALUTAZIONE].
 
-[CONTESTO]
-Crea una Situazione-Problema stimolante.
-
-[CONSEGNA]
-Definisci il compito di realtà.
-
-[TRAGUARDI]
-Elenca: ${traguardiScelti?.join(" | ")}.
-
-[PRODOTTO]
-Descrivi il prodotto finale tangibile: ${prodotti}.
-
-[PIANO_LAVORO]
-Scansione temporale di ${ore} ore. Formato obbligatorio per ogni riga:
+Nel [PIANO_LAVORO] usa rigorosamente questo formato per ogni riga:
 FASE: 1 | MATERIE: ... | DESCRIZIONE: ... | METODI: ${metodologie} | VALUTAZIONE: ... | ORE: ...
-
-[VALUTAZIONE]
-Specifica l'uso delle griglie d'Istituto (Prerequisiti, Processo, Prodotto, Competenze).
 `;
     } 
-    // 3. LOGICA GENERAZIONE 3 PROPOSTE (FASE 1)
+    // 3. LOGICA PROPOSTE
     else {
       prompt = `Genera 3 proposte sintetiche per un'UDA dell'IC Bursi.
-      Titolo: "${titolo}", Classe: ${classe}ª, Materie: ${materie?.join(", ")}.
+      Dati: Titolo "${titolo}", Classe ${classe}ª, Materie: ${materie?.join(", ")}.
       Note: ${descrizioneLibera}. Metodologie: ${metodologie}. Prodotto: ${prodotti}.
+      
       Rispondi ESCLUSIVAMENTE con un oggetto JSON:
       {"proposte": ["Idea 1", "Idea 2", "Idea 3"]}`;
     }
 
-    // 4. CHIAMATA AL SERVER GROQ
+    // 4. CHIAMATA A GROQ (Corrette le virgolette Authorization)
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -87,14 +73,12 @@ Specifica l'uso delle griglie d'Istituto (Prerequisiti, Processo, Prodotto, Comp
 
     const data = await response.json();
 
-    // Gestione errori risposta
     if (!data.choices || data.choices.length === 0) {
-      throw new Error("L'IA non ha risposto correttamente.");
+      throw new Error("Risposta vuota dall'IA");
     }
 
     const content = data.choices[0].message.content;
 
-    // 5. INVIO AL FRONTEND
     if (tipoRichiesta === "UDA_COMPLETA") {
       return NextResponse.json({ uda: content });
     } else {
