@@ -1,3 +1,4 @@
+
 "use client";
 import { useState } from "react";
 
@@ -213,9 +214,6 @@ export default function GeneratoreUDA() {
   const [scuola, setScuola] = useState("primaria");
   const [classe, setClasse] = useState("1");
   const [descrizioneLibera, setDescrizioneLibera] = useState("");
-  // --- NUOVI STATI PER VINCOLI DOCENTE ---
-const [metodologie, setMetodologie] = useState("");
-const [prodotti, setProdotti] = useState("");
 
   // --- STATO PER I TRAGUARDI SELEZIONATI ---
   const [selectedTraguardi, setSelectedTraguardi] = useState<string[]>([]);
@@ -241,7 +239,7 @@ const [prodotti, setProdotti] = useState("");
     );
   };
   
-// 1. FUNZIONE PER GENERARE LE 3 IDEE INIZIALI (FOCUS: COMPITI DI REALTÀ)
+  // 1. FUNZIONE PER GENERARE LE 3 IDEE INIZIALI (FOCUS: COMPITI DI REALTÀ)
   const handleGeneraProposte = async () => {
     if (!titolo || materie.length === 0) {
       alert("Inserisci almeno il titolo e una materia!");
@@ -255,26 +253,15 @@ const [prodotti, setProdotti] = useState("");
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
-          titolo, 
-          scuola, 
-          classe, 
-          descrizioneLibera, 
-          materie, 
-          periodo, 
-          ore,
-          metodologie, 
-          prodotti,
+          titolo, scuola, classe, descrizioneLibera, materie, periodo, ore,
           tipoRichiesta: "PROPOSTE",
-          istruzioniExtra: `Genera esclusivamente 3 idee basate sul modello del COMPITO DI REALTÀ. 
-            ${metodologie ? `VINCOLO METODOLOGICO: Usa rigorosamente ${metodologie}.` : ""}
-            ${prodotti ? `VINCOLO PRODOTTO: Il compito deve portare alla creazione di: ${prodotti}.` : ""}
-            Includi sempre situazione problema e prodotto finale tangibile.`
+          istruzioniExtra: "Genera esclusivamente 3 idee basate sul modello del COMPITO DI REALTÀ con situazione problema e prodotto finale tangibile."
         }),
       });
       const data = await res.json();
       if (data.proposte) setProposte(data.proposte);
     } catch (err) {
-      alert("⚠️ OPS! Troppi docenti collegati o limite raggiunto. Per favore attendi 60 secondi e riprova!");
+      alert("⚠️ OPS! Troppi docenti collegati o limite raggiunto. Per favore attendi 60 secondi e riprova: il sistema gratuito si ricarica ogni minuto!");
     } finally {
       setLoading(false);
     }
@@ -295,16 +282,8 @@ const [prodotti, setProdotti] = useState("");
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
-          titolo, 
-          scuola, 
-          classe, 
-          materie, 
-          periodo, 
-          ore, 
-          propostaScelta, 
+          titolo, scuola, classe, materie, periodo, ore, propostaScelta, 
           traguardiScelti: selectedTraguardi, 
-          metodologie, 
-          prodotti,
           tipoRichiesta: "UDA_COMPLETA",
           istruzioniSviluppo: `
             PROTOCOLLO DI GENERAZIONE VINCOLATA - MODELLO COMPITO DI REALTÀ (IC BURSI)
@@ -314,10 +293,9 @@ const [prodotti, setProdotti] = useState("");
             }
 
             VINCOLI PEDAGOGICI MANDATORI:
-            - METODOLOGIE RICHIESTE: ${metodologie || "Didattica attiva e collaborativa"}.
-            - PRODOTTO FINALE RICHIESTO: ${prodotti || "Output concreto e tangibile"}.
             - SITUAZIONE PROBLEMA: L'UDA deve partire da un problema autentico e sfidante.
             - RUOLO: Definisci il ruolo operativo degli alunni (es. sarete guide turistiche, scienziati, redattori).
+            - PRODOTTO FINALE: Deve esserci un output concreto (un video, un evento, un manufatto, un kit).
             
             PARAMETRI DI TARATURA:
             1. CLASSE E ORDINE: Classe ${classe}ª, Scuola ${scuola}. Calibra linguaggio e complessità.
@@ -631,32 +609,6 @@ const corpoHtml = `
             className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl h-24 outline-none focus:ring-2 focus:ring-blue-500" 
           />
         </div>
-        
-        {/* --- NUOVI SPAZI COMPILABILI FACOLTATIVI --- */}
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-  <div>
-    <label className="block text-sm font-bold text-slate-700 mb-2 uppercase">
-      Metodologie Didattiche (Facoltativo)
-    </label>
-    <textarea
-      value={metodologie}
-      onChange={(e) => setMetodologie(e.target.value)}
-      placeholder="Es: Peer teaching, Cooperative Learning..."
-      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 h-24 text-sm"
-    />
-  </div>
-  <div>
-    <label className="block text-sm font-bold text-slate-700 mb-2 uppercase">
-      Prodotto o Prodotti Finali (Facoltativo)
-    </label>
-    <textarea
-      value={prodotti}
-      onChange={(e) => setProdotti(e.target.value)}
-      placeholder="Es: Realizzazione di un podcast, Lapbook, Mostra fotografica..."
-      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 h-24 text-sm"
-    />
-  </div>
-</div>
 
        {/* --- AREA AZIONI: DISCLAIMER E TASTI --- */}
         <div className="flex flex-col w-full mt-8 max-w-2xl mx-auto">
