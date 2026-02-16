@@ -242,7 +242,7 @@ const [prodotti, setProdotti] = useState("");
     );
   };
   
-  // 1. FUNZIONE PER GENERARE LE 3 IDEE INIZIALI (FOCUS: COMPITI DI REALTÀ)
+ // 1. FUNZIONE PER GENERARE LE 3 IDEE INIZIALI (FOCUS: COMPITI DI REALTÀ)
   const handleGeneraProposte = async () => {
     if (!titolo || materie.length === 0) {
       alert("Inserisci almeno il titolo e una materia!");
@@ -257,20 +257,25 @@ const [prodotti, setProdotti] = useState("");
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           titolo, scuola, classe, descrizioneLibera, materie, periodo, ore,
+          metodologie, // <--- AGGIUNTO
+          prodotti,    // <--- AGGIUNTO
           tipoRichiesta: "PROPOSTE",
-          istruzioniExtra: "Genera esclusivamente 3 idee basate sul modello del COMPITO DI REALTÀ con situazione problema e prodotto finale tangibile."
+          istruzioniExtra: `Genera esclusivamente 3 idee basate sul modello del COMPITO DI REALTÀ. 
+            ${metodologie ? `VINCOLO METODOLOGICO: Usa rigorosamente ${metodologie}.` : ""}
+            ${prodotti ? `VINCOLO PRODOTTO: Il compito deve portare alla creazione di: ${prodotti}.` : ""}
+            Includi sempre situazione problema e prodotto finale tangibile.`
         }),
       });
       const data = await res.json();
       if (data.proposte) setProposte(data.proposte);
     } catch (err) {
-      alert("⚠️ OPS! Troppi docenti collegati o limite raggiunto. Per favore attendi 60 secondi e riprova: il sistema gratuito si ricarica ogni minuto!");
+      alert("⚠️ OPS! Troppi docenti collegati o limite raggiunto. Per favore attendi 60 secondi e riprova!");
     } finally {
       setLoading(false);
     }
   };
 
-  // 2. FUNZIONE PER SVILUPPARE L'UDA COMPLETA (PROTOCOLLO COMPITO DI REALTÀ)
+ // 2. FUNZIONE PER SVILUPPARE L'UDA COMPLETA (PROTOCOLLO COMPITO DI REALTÀ)
   const sviluppaUdaCompleta = async (propostaScelta: string) => {
     if (selectedTraguardi.length === 0) {
       alert("Seleziona i traguardi dal curricolo! Sono vincoli assoluti.");
@@ -287,6 +292,8 @@ const [prodotti, setProdotti] = useState("");
         body: JSON.stringify({ 
           titolo, scuola, classe, materie, periodo, ore, propostaScelta, 
           traguardiScelti: selectedTraguardi, 
+          metodologie, // <--- AGGIUNTO
+          prodotti,    // <--- AGGIUNTO
           tipoRichiesta: "UDA_COMPLETA",
           istruzioniSviluppo: `
             PROTOCOLLO DI GENERAZIONE VINCOLATA - MODELLO COMPITO DI REALTÀ (IC BURSI)
@@ -296,9 +303,10 @@ const [prodotti, setProdotti] = useState("");
             }
 
             VINCOLI PEDAGOGICI MANDATORI:
+            - METODOLOGIE RICHIESTE: ${metodologie || "Didattica attiva e collaborativa"}.
+            - PRODOTTO FINALE RICHIESTO: ${prodotti || "Output concreto e tangibile"}.
             - SITUAZIONE PROBLEMA: L'UDA deve partire da un problema autentico e sfidante.
             - RUOLO: Definisci il ruolo operativo degli alunni (es. sarete guide turistiche, scienziati, redattori).
-            - PRODOTTO FINALE: Deve esserci un output concreto (un video, un evento, un manufatto, un kit).
             
             PARAMETRI DI TARATURA:
             1. CLASSE E ORDINE: Classe ${classe}ª, Scuola ${scuola}. Calibra linguaggio e complessità.
