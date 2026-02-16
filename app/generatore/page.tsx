@@ -214,6 +214,9 @@ export default function GeneratoreUDA() {
   const [scuola, setScuola] = useState("primaria");
   const [classe, setClasse] = useState("1");
   const [descrizioneLibera, setDescrizioneLibera] = useState("");
+  // --- NUOVI STATI PER VINCOLI DOCENTE ---
+const [metodologie, setMetodologie] = useState("");
+const [prodotti, setProdotti] = useState("");
 
   // --- STATO PER I TRAGUARDI SELEZIONATI ---
   const [selectedTraguardi, setSelectedTraguardi] = useState<string[]>([]);
