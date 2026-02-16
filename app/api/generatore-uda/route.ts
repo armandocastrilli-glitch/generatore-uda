@@ -4,27 +4,43 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     
-    // Estrazione dati con nomi corretti (senza spazi)
+    // ESTRAZIONE DATI (Sistemati i nomi che nel PDF avevano spazi)
     const { 
       titolo, scuola, classe, materie, periodo, ore, 
       propostaScelta, tipoRichiesta, descrizioneLibera,
       metodologie, prodotti, traguardiScelti 
     } = body;
 
-    const apiKey = process.env.GROQ_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY; // Se funzionava ieri, la chiave è già nelle impostazioni del tuo server
+
     if (!apiKey) {
-      return NextResponse.json({ error: "Manca GROQ_API_KEY nel file .env" }, { status: 500 });
+      return NextResponse.json({ error: "API Key non trovata" }, { status: 500 });
     }
 
     let prompt = "";
 
     if (tipoRichiesta === "UDA_COMPLETA") {
-      prompt = `Genera UDA: ${titolo}. Classe: ${classe}. Materie: ${materie?.join(", ")}. 
-      Metodologie: ${metodologie || "Attive"}. Prodotto: ${prodotti || "Concreto"}. 
-      Note: ${descrizioneLibera}. Traguardi: ${traguardiScelti?.join(" | ")}.
-      Usa i tag obbligatori: [CONTESTO], [CONSEGNA], [TRAGUARDI], [PRODOTTO], [PIANO_LAVORO], [VALUTAZIONE].`;
+      prompt = `
+Agisci come un Esperto Progettista Didattico dell'IC Bursi.
+Genera l'UDA "${titolo}" per classe ${classe}ª ${scuola}.
+
+DATI:
+- Materie: ${materie?.join(", ")}
+- Ore: ${ore} | Periodo: ${periodo}
+- Traguardi: ${traguardiScelti?.join(" | ")}
+- Metodologie: ${metodologie || "Didattica attiva"}
+- Prodotto: ${prodotti || "Compito di realtà"}
+- Note: ${descrizioneLibera}
+
+REGOLE FORMATTAZIONE:
+Usa i tag: [CONTESTO], [CONSEGNA], [TRAGUARDI], [PRODOTTO], [PIANO_LAVORO], [VALUTAZIONE].
+Nel PIANO_LAVORO usa: FASE: | MATERIE: | DESCRIZIONE: | METODI: | VALUTAZIONE: | ORE:
+`;
     } else {
-      prompt = `Genera 3 proposte UDA per "${titolo}" in formato JSON: {"proposte": ["1", "2", "3"]}`;
+      prompt = `Genera 3 proposte UDA per "${titolo}". 
+      Classe ${classe}ª, Materie: ${materie?.join(", ")}.
+      Metodologie: ${metodologie}. Prodotto: ${prodotti}.
+      Rispondi in JSON: {"proposte": ["...", "...", "..."]}`;
     }
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -36,7 +52,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: "Sei un esperto dell'IC Bursi." },
+          { role: "system", content: "Sei il generatore ufficiale di UDA dell'IC Bursi." },
           { role: "user", content: prompt }
         ],
         temperature: 0.3,
@@ -54,7 +70,7 @@ export async function POST(req: Request) {
     }
 
   } catch (error: any) {
-    console.error("CRASH SERVER:", error);
-    return NextResponse.json({ error: "Errore interno al server" }, { status: 500 });
+    console.error("ERRORE:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
