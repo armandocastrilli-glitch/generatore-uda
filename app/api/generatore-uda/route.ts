@@ -4,14 +4,20 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     
-    // 1. ESTRAZIONE DATI AGGIORNATA (Aggiunti metodologie e prodotti)
+    // 1. ESTRAZIONE DATI (Nomi puliti senza spazi)
     const { 
-      titolo, scuola, classe, materie, periodo, ore, 
-      propostaScelta, tipoRichiesta, descrizioneLibera,
-      metodologie, // <-- Nuovo campo
-      prodotti,    // <-- Nuovo campo
-      traguardiScelti,
-      istruzioniSviluppo 
+      titolo, 
+      scuola, 
+      classe, 
+      materie, 
+      periodo, 
+      ore, 
+      propostaScelta, 
+      tipoRichiesta, 
+      descrizioneLibera,
+      metodologie, 
+      prodotti, 
+      traguardiScelti 
     } = body;
 
     const apiKey = process.env.GROQ_API_KEY;
@@ -22,60 +28,56 @@ export async function POST(req: Request) {
 
     let prompt = "";
 
+    // 2. LOGICA UDA COMPLETA
     if (tipoRichiesta === "UDA_COMPLETA") {
-      const isCompilazioneDiretta = propostaScelta?.includes("COMPILAZIONE_DIRETTA");
-
       prompt = `
 Agisci come un Esperto Progettista Didattico dell'IC Bursi. 
-DEVI generare i contenuti per l'UDA intitolata "${titolo}" rispettando rigorosamente i vincoli forniti.
+DEVI generare i contenuti per l'UDA intitolata "${titolo}" rispettando i seguenti vincoli.
 
 DATI TECNICI:
-- Scuola: ${scuola} | Classe: ${classe}ª
+- Ordine: ${scuola} | Classe: ${classe}ª
 - Materie: ${materie?.join(", ")}
 - Ore: ${ore} | Periodo: ${periodo}
 - Traguardi scelti: ${traguardiScelti?.join(" | ")}
 
-VINCOLI DIDATTICI SPECIFICI (DA RISPETTARE RIGOROSAMENTE):
-- METODOLOGIE DA USARE: ${metodologie || "Didattica attiva, laboratori e cooperative learning"}.
-- PRODOTTO FINALE: ${prodotti || "Coerente con le note del docente"}.
-- NOTE DOCENTE: ${descrizioneLibera || "Nessuna nota aggiuntiva"}.
+VINCOLI DIDATTICI:
+- METODOLOGIE: ${metodologie || "Didattica attiva"}
+- PRODOTTO FINALE: ${prodotti || "Coerente con le note"}
+- NOTE DOCENTE: ${descrizioneLibera || "Nessuna"}
 
-REGOLE DI FORMATTAZIONE:
-L'output deve essere diviso ESATTAMENTE dai seguenti tag tra parentesi quadre:
+FORMATTAZIONE OBBLIGATORIA (Usa questi tag):
 
 [CONTESTO]
-Crea una "Situazione-Problema" stimolante. Se il docente ha indicato "${metodologie}", descrivi come queste metodologie aiuteranno a risolvere il problema.
+Crea una Situazione-Problema stimolante legata a: ${descrizioneLibera}.
 
 [CONSEGNA]
-Crea un compito di realtà operativo.
+Definisci il compito di realtà operativo.
 
 [TRAGUARDI]
-Elenca i traguardi scelti dal docente: ${traguardiScelti?.join(" | ")}.
+Elenca i traguardi scelti: ${traguardiScelti?.join(" | ")}.
 
 [PRODOTTO]
-Descrivi dettagliatamente il prodotto: ${prodotti || "Basati sulle note: " + descrizioneLibera}.
+Descrivi il prodotto finale: ${prodotti || descrizioneLibera}.
 
 [PIANO_LAVORO]
-Genera la scansione per ${ore} ore. 
-IMPORTANTE: Ogni fase deve usare il formato:
+Genera la scansione per ${ore} ore. Ogni fase DEVE seguire questo formato:
 FASE: 1 | MATERIE: ... | DESCRIZIONE: ... | METODI: ${metodologie || "Lezioni attive"} | VALUTAZIONE: ... | ORE: ...
 
 [VALUTAZIONE]
-Specifica l'utilizzo delle griglie IC Bursi (Prerequisiti, Processo, Prodotto, Competenze).
+Specifica l'utilizzo delle griglie d'Istituto (Prerequisiti, Processo, Prodotto, Competenze).
 `;
-    } else {
-      // 3. PROMPT PER LE 3 PROPOSTE (FASE 1)
-      prompt = `Genera 3 proposte sintetiche per un'UDA scolastica (IC Bursi).
-      Dati: Titolo "${titolo}", Classe ${classe}ª, Materie: ${materie?.join(", ")}.
-      Note: ${descrizioneLibera || "Nessuna"}.
-      Metodologie preferite: ${metodologie || "Non specificate"}.
-      Prodotto finale richiesto: ${prodotti || "Non specificato"}.
+    } 
+    // 3. LOGICA 3 PROPOSTE
+    else {
+      prompt = `Genera 3 proposte sintetiche per un'UDA dell'IC Bursi.
+      Titolo: "${titolo}", Classe: ${classe}ª, Materie: ${materie?.join(", ")}.
+      Note: ${descrizioneLibera}. Metodologie: ${metodologie}. Prodotto: ${prodotti}.
       
-      IMPORTANTE: Rispondi ESCLUSIVAMENTE con un oggetto JSON:
-      {"proposte": ["Idea 1", "Idea 2", "Idea 3"]}
-      Le proposte devono integrare le metodologie "${metodologie}" e portare al prodotto "${prodotti}" se specificati.`;
+      Rispondi SOLO con questo formato JSON:
+      {"proposte": ["Idea 1", "Idea 2", "Idea 3"]}`;
     }
 
+    // 4. CHIAMATA A GROQ
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -87,8 +89,7 @@ Specifica l'utilizzo delle griglie IC Bursi (Prerequisiti, Processo, Prodotto, C
         messages: [
           { 
             role: "system", 
-            content: `Sei il generatore ufficiale di UDA dell'IC F. Bursi. 
-            Classe ${classe}ª ${scuola}. Usa un tono professionale e tecnico.` 
+            content: `Sei il generatore ufficiale di UDA dell'IC F. Bursi. Classe ${classe}ª ${scuola}.` 
           },
           { role: "user", content: prompt }
         ],
@@ -100,18 +101,25 @@ Specifica l'utilizzo delle griglie IC Bursi (Prerequisiti, Processo, Prodotto, C
     const data = await response.json();
 
     if (!data.choices || data.choices.length === 0) {
-        throw new Error("Risposta vuota dall'IA");
+      throw new Error("L'IA non ha restituito risultati.");
     }
 
+    const content = data.choices[0].message.content;
+
     if (tipoRichiesta === "UDA_COMPLETA") {
-      return NextResponse.json({ uda: data.choices[0].message.content });
+      return NextResponse.json({ uda: content });
     } else {
-      const content = JSON.parse(data.choices[0].message.content);
-      return NextResponse.json({ proposte: content.proposte });
+      // Parsing sicuro del JSON per le proposte
+      try {
+        const parsed = JSON.parse(content);
+        return NextResponse.json({ proposte: parsed.proposte });
+      } catch (e) {
+        return NextResponse.json({ proposte: ["Errore nel formato della risposta IA"] });
+      }
     }
 
   } catch (error: any) {
-    console.error("ERRORE API:", error);
+    console.error("ERRORE SERVER:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
