@@ -4,17 +4,17 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     
-    // ESTRAZIONE DATI (Sistemati i nomi che nel PDF avevano spazi)
+    // 1. ESTRAZIONE DATI (Sistemati i nomi che avevano spazi: ora sono identici al frontend)
     const { 
       titolo, scuola, classe, materie, periodo, ore, 
       propostaScelta, tipoRichiesta, descrizioneLibera,
       metodologie, prodotti, traguardiScelti 
     } = body;
 
-    const apiKey = process.env.GROQ_API_KEY; // Se funzionava ieri, la chiave è già nelle impostazioni del tuo server
+    const apiKey = process.env.GROQ_API_KEY;
 
     if (!apiKey) {
-      return NextResponse.json({ error: "API Key non trovata" }, { status: 500 });
+      return NextResponse.json({ error: "API Key mancante" }, { status: 500 });
     }
 
     let prompt = "";
@@ -22,25 +22,31 @@ export async function POST(req: Request) {
     if (tipoRichiesta === "UDA_COMPLETA") {
       prompt = `
 Agisci come un Esperto Progettista Didattico dell'IC Bursi.
-Genera l'UDA "${titolo}" per classe ${classe}ª ${scuola}.
+DEVI generare i contenuti per l'UDA intitolata "${titolo}" rispettando rigorosamente i vincoli forniti.
 
-DATI:
+DATI TECNICI:
+- Scuola: ${scuola} | Classe: ${classe}ª
 - Materie: ${materie?.join(", ")}
 - Ore: ${ore} | Periodo: ${periodo}
-- Traguardi: ${traguardiScelti?.join(" | ")}
-- Metodologie: ${metodologie || "Didattica attiva"}
-- Prodotto: ${prodotti || "Compito di realtà"}
-- Note: ${descrizioneLibera}
+- Traguardi scelti: ${traguardiScelti?.join(" | ")}
 
-REGOLE FORMATTAZIONE:
-Usa i tag: [CONTESTO], [CONSEGNA], [TRAGUARDI], [PRODOTTO], [PIANO_LAVORO], [VALUTAZIONE].
-Nel PIANO_LAVORO usa: FASE: | MATERIE: | DESCRIZIONE: | METODI: | VALUTAZIONE: | ORE:
+VINCOLI DIDATTICI SPECIFICI:
+- METODOLOGIE: ${metodologie || "Didattica attiva"}
+- PRODOTTO FINALE: ${prodotti || "Output concreto"}
+- NOTE: ${descrizioneLibera}
+
+REGOLE DI FORMATTAZIONE:
+L'output deve essere diviso dai tag: [CONTESTO], [CONSEGNA], [TRAGUARDI], [PRODOTTO], [PIANO_LAVORO], [VALUTAZIONE].
+
+Nel [PIANO_LAVORO] ogni riga deve seguire questo formato:
+FASE: 1 | MATERIE: ... | DESCRIZIONE: ... | METODI: ${metodologie} | VALUTAZIONE: ... | ORE: ...
 `;
     } else {
-      prompt = `Genera 3 proposte UDA per "${titolo}". 
-      Classe ${classe}ª, Materie: ${materie?.join(", ")}.
-      Metodologie: ${metodologie}. Prodotto: ${prodotti}.
-      Rispondi in JSON: {"proposte": ["...", "...", "..."]}`;
+      prompt = `Genera 3 proposte sintetiche per un'UDA dell'IC Bursi.
+      Dati: Titolo "${titolo}", Classe ${classe}ª, Materie: ${materie?.join(", ")}.
+      Note: ${descrizioneLibera}. Metodologie: ${metodologie}. Prodotto: ${prodotti}.
+      Rispondi ESCLUSIVAMENTE con un oggetto JSON:
+      {"proposte": ["Idea 1", "Idea 2", "Idea 3"]}`;
     }
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -52,7 +58,7 @@ Nel PIANO_LAVORO usa: FASE: | MATERIE: | DESCRIZIONE: | METODI: | VALUTAZIONE: |
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: "Sei il generatore ufficiale di UDA dell'IC Bursi." },
+          { role: "system", content: `Sei il generatore ufficiale di UDA dell'IC F. Bursi. Classe ${classe}ª ${scuola}.` },
           { role: "user", content: prompt }
         ],
         temperature: 0.3,
@@ -62,15 +68,21 @@ Nel PIANO_LAVORO usa: FASE: | MATERIE: | DESCRIZIONE: | METODI: | VALUTAZIONE: |
 
     const data = await response.json();
 
+    // Gestione errori e invio risposta
+    if (!data.choices || data.choices.length === 0) {
+       return NextResponse.json({ error: "Errore risposta IA" }, { status: 500 });
+    }
+
+    const content = data.choices[0].message.content;
+
     if (tipoRichiesta === "UDA_COMPLETA") {
-      return NextResponse.json({ uda: data.choices[0].message.content });
+      return NextResponse.json({ uda: content });
     } else {
-      const content = JSON.parse(data.choices[0].message.content);
-      return NextResponse.json({ proposte: content.proposte });
+      const parsed = JSON.parse(content);
+      return NextResponse.json({ proposte: parsed.proposte });
     }
 
   } catch (error: any) {
-    console.error("ERRORE:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
