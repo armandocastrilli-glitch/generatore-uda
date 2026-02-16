@@ -4,80 +4,70 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     
-    // 1. ESTRAZIONE DATI (Nomi puliti senza spazi)
+    // 1. ESTRAZIONE DATI (Corretti i nomi che nel PDF avevano spazi)
     const { 
-      titolo, 
-      scuola, 
-      classe, 
-      materie, 
-      periodo, 
-      ore, 
-      propostaScelta, 
-      tipoRichiesta, 
-      descrizioneLibera,
-      metodologie, 
-      prodotti, 
-      traguardiScelti 
+      titolo, scuola, classe, materie, periodo, ore, 
+      propostaScelta, tipoRichiesta, descrizioneLibera,
+      metodologie, prodotti, traguardiScelti 
     } = body;
 
     const apiKey = process.env.GROQ_API_KEY;
 
     if (!apiKey) {
-      return NextResponse.json({ error: "API Key mancante sul server" }, { status: 500 });
+      return NextResponse.json({ error: "API Key mancante" }, { status: 500 });
     }
 
     let prompt = "";
 
-    // 2. LOGICA UDA COMPLETA
+    // 2. LOGICA SVILUPPO UDA COMPLETA (Mantenuti tutti i tuoi TAG)
     if (tipoRichiesta === "UDA_COMPLETA") {
       prompt = `
-Agisci come un Esperto Progettista Didattico dell'IC Bursi. 
-DEVI generare i contenuti per l'UDA intitolata "${titolo}" rispettando i seguenti vincoli.
+Agisci come un Esperto Progettista Didattico dell'IC Bursi.
+Genera i contenuti per l'UDA "${titolo}" per una classe ${classe}ª ${scuola}.
 
 DATI TECNICI:
-- Ordine: ${scuola} | Classe: ${classe}ª
 - Materie: ${materie?.join(", ")}
 - Ore: ${ore} | Periodo: ${periodo}
-- Traguardi scelti: ${traguardiScelti?.join(" | ")}
+- Traguardi: ${traguardiScelti?.join(" | ")}
 
-VINCOLI DIDATTICI:
-- METODOLOGIE: ${metodologie || "Didattica attiva"}
-- PRODOTTO FINALE: ${prodotti || "Coerente con le note"}
-- NOTE DOCENTE: ${descrizioneLibera || "Nessuna"}
+VINCOLI DOCENTE:
+- Metodologie: ${metodologie || "Didattica attiva"}
+- Prodotto: ${prodotti || "Compito di realtà"}
+- Note: ${descrizioneLibera}
 
-FORMATTAZIONE OBBLIGATORIA (Usa questi tag):
+REGOLE DI FORMATTAZIONE (OBBLIGATORIE):
+Usa esattamente questi tag:
 
 [CONTESTO]
-Crea una Situazione-Problema stimolante legata a: ${descrizioneLibera}.
+Crea una Situazione-Problema stimolante.
 
 [CONSEGNA]
-Definisci il compito di realtà operativo.
+Definisci il compito di realtà.
 
 [TRAGUARDI]
-Elenca i traguardi scelti: ${traguardiScelti?.join(" | ")}.
+Elenca: ${traguardiScelti?.join(" | ")}.
 
 [PRODOTTO]
-Descrivi il prodotto finale: ${prodotti || descrizioneLibera}.
+Descrivi il prodotto finale tangibile: ${prodotti}.
 
 [PIANO_LAVORO]
-Genera la scansione per ${ore} ore. Ogni fase DEVE seguire questo formato:
-FASE: 1 | MATERIE: ... | DESCRIZIONE: ... | METODI: ${metodologie || "Lezioni attive"} | VALUTAZIONE: ... | ORE: ...
+Scansione temporale di ${ore} ore. Formato obbligatorio per ogni riga:
+FASE: 1 | MATERIE: ... | DESCRIZIONE: ... | METODI: ${metodologie} | VALUTAZIONE: ... | ORE: ...
 
 [VALUTAZIONE]
-Specifica l'utilizzo delle griglie d'Istituto (Prerequisiti, Processo, Prodotto, Competenze).
+Specifica l'uso delle griglie d'Istituto (Prerequisiti, Processo, Prodotto, Competenze).
 `;
     } 
-    // 3. LOGICA 3 PROPOSTE
+    // 3. LOGICA GENERAZIONE 3 PROPOSTE (FASE 1)
     else {
       prompt = `Genera 3 proposte sintetiche per un'UDA dell'IC Bursi.
       Titolo: "${titolo}", Classe: ${classe}ª, Materie: ${materie?.join(", ")}.
       Note: ${descrizioneLibera}. Metodologie: ${metodologie}. Prodotto: ${prodotti}.
-      
-      Rispondi SOLO con questo formato JSON:
+      Rispondi ESCLUSIVAMENTE con un oggetto JSON:
       {"proposte": ["Idea 1", "Idea 2", "Idea 3"]}`;
     }
 
-    // 4. CHIAMATA A GROQ
+    // 4. CHIAMATA AL SERVER GROQ
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -87,10 +77,7 @@ Specifica l'utilizzo delle griglie d'Istituto (Prerequisiti, Processo, Prodotto,
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { 
-            role: "system", 
-            content: `Sei il generatore ufficiale di UDA dell'IC F. Bursi. Classe ${classe}ª ${scuola}.` 
-          },
+          { role: "system", content: "Sei il generatore ufficiale di UDA dell'IC F. Bursi." },
           { role: "user", content: prompt }
         ],
         temperature: 0.3,
@@ -100,22 +87,19 @@ Specifica l'utilizzo delle griglie d'Istituto (Prerequisiti, Processo, Prodotto,
 
     const data = await response.json();
 
+    // Gestione errori risposta
     if (!data.choices || data.choices.length === 0) {
-      throw new Error("L'IA non ha restituito risultati.");
+      throw new Error("L'IA non ha risposto correttamente.");
     }
 
     const content = data.choices[0].message.content;
 
+    // 5. INVIO AL FRONTEND
     if (tipoRichiesta === "UDA_COMPLETA") {
       return NextResponse.json({ uda: content });
     } else {
-      // Parsing sicuro del JSON per le proposte
-      try {
-        const parsed = JSON.parse(content);
-        return NextResponse.json({ proposte: parsed.proposte });
-      } catch (e) {
-        return NextResponse.json({ proposte: ["Errore nel formato della risposta IA"] });
-      }
+      const parsed = JSON.parse(content);
+      return NextResponse.json({ proposte: parsed.proposte });
     }
 
   } catch (error: any) {
