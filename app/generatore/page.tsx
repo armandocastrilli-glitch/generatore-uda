@@ -227,7 +227,7 @@ const [prodotti, setProdotti] = useState("");
 
   const listaMaterie = [
     "Italiano", "Storia", "Geografia", "Matematica", "Scienze", 
-    "Inglese", "Tecnologia", "Arte e Immagine", "Musica", "Ed. Fisica", "Religione", "Sostegno"
+    "Inglese", "Francese", "Tecnologia", "Arte e Immagine", "Musica", "Ed. Fisica", "Religione", "Sostegno"
   ];
 
   const toggleMateria = (m: string) => {
