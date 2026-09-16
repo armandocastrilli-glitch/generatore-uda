@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    
+
     // ESTRAZIONE DATI COMPLETA
     const { 
       titolo, 
@@ -23,7 +23,10 @@ export async function POST(req: Request) {
     const apiKey = process.env.GROQ_API_KEY;
 
     if (!apiKey) {
-      return NextResponse.json({ error: "API Key non configurata nelle Environment Variables" }, { status: 500 });
+      return NextResponse.json(
+        { error: "API Key non configurata nelle Environment Variables di Vercel" }, 
+        { status: 500 }
+      );
     }
 
     let prompt = "";
@@ -75,7 +78,7 @@ Materie: ${materie?.join(", ")}
 Metodologie: ${metodologie}
 Prodotto: ${prodotti}
 
-Rispondi ESCLUSIVAMENTE con un oggetto JSON in questo formato:
+Rispondi ESCLUSIVAMENTE con un oggetto JSON valido nel seguente formato esatto, senza testo o markdown aggiuntivo:
 {"proposte": ["Titolo: ... | Idea: ...", "Titolo: ... | Idea: ...", "Titolo: ... | Idea: ..."]}
 `;
     }
@@ -83,7 +86,7 @@ Rispondi ESCLUSIVAMENTE con un oggetto JSON in questo formato:
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${apiKey}`,
+        "Authorization": `Bearer ${apiKey.trim()}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -102,8 +105,18 @@ Rispondi ESCLUSIVAMENTE con un oggetto JSON in questo formato:
 
     const data = await response.json();
 
+    // INTERCETTAZIONE ERRORI DIRETTI DA GROQ
+    if (!response.ok || data.error) {
+      console.error("ERRORE DETTAGLIATO DA GROQ:", JSON.stringify(data.error, null, 2));
+      const errorMessage = data.error?.message || "Errore sconosciuto restituito dall'API di Groq";
+      return NextResponse.json(
+        { error: `Errore Groq (${response.status}): ${errorMessage}` }, 
+        { status: response.status || 500 }
+      );
+    }
+
     if (!data.choices || data.choices.length === 0) {
-      throw new Error("Nessuna risposta ricevuta dal modello IA.");
+      throw new Error("L'IA ha risposto correttamente ma non ha generato alcun contenuto.");
     }
 
     const content = data.choices[0].message.content;
@@ -111,13 +124,21 @@ Rispondi ESCLUSIVAMENTE con un oggetto JSON in questo formato:
     if (tipoRichiesta === "UDA_COMPLETA") {
       return NextResponse.json({ uda: content });
     } else {
-      // Parsiamo il JSON delle 3 proposte
-      const jsonContent = JSON.parse(content);
-      return NextResponse.json({ proposte: jsonContent.proposte });
+      // PARSING SICURO DEL JSON PER LE PROPOSTE
+      try {
+        const jsonContent = JSON.parse(content);
+        return NextResponse.json({ proposte: jsonContent.proposte });
+      } catch (parseError) {
+        console.error("ERRORE PARSING JSON PROPOSTE:", content);
+        throw new Error("La risposta dell'IA per le proposte non era in un formato JSON valido.");
+      }
     }
 
   } catch (error: any) {
-    console.error("ERRORE GENERAZIONE:", error);
-    return NextResponse.json({ error: "Errore durante la generazione: " + error.message }, { status: 500 });
+    console.error("ERRORE GENERAZIONE ROUTE:", error);
+    return NextResponse.json(
+      { error: "Errore durante la generazione: " + (error.message || "Errore interno server") }, 
+      { status: 500 }
+    );
   }
 }
